@@ -3,6 +3,40 @@ title: "R 360 New Variables and Plots"
 output: html_notebook
 ---
 
+# The Question
+- In order to know what variables and visualizations we want to create, we need to first ask ourselves what questions are we trying to answer
+    - A failure to do this can result in data overload and/or the recipient wondering what he/she is supposed to do with all this data
+- There are six basic categories of questions^[Leek, "Types of Data Science Questions"]  
+    1. Descriptive
+        a. describe but not make decisions/interpret/infer
+        b. How many coders / accounts / queries / codes?
+        
+    1. Exploratory
+        a. look at data and find relationships
+        b. drive future analysis to confirm
+        c. not the final say - shouldn't be used for generalization or predicting
+        d. correlation is not causation
+            - e.g. relationship between shoe size and intellect - the data shows that people with a size 2 are less intelligent than those with size 9.  People with a size 2 are also children where as size 9 are adults!
+        e. **Are there any relationships between querying and severity?**
+        
+    2. Inferential
+        a. take a small number of observations and extrapolate/generalize
+        b. commonly the goal of statistical analysis - we want to draw conclusions
+        
+    3. Predictive
+        a. More challenging - use data on some objects to predict value of another object
+        b. just because x predicts y doesn't mean that x causes y
+        c. "prediction is hard; especially about the future."
+        d. Nate Silver examples of predicting US elections
+    1. Casual
+        a. if you change one value, will it change anothe?
+        b. **if we improve P&R or the other metrics, will it improve ROI on CAC investement** (generally in terms of improved severity capture and coder productivity)?
+        c. This is the **goal** of anlysis
+    1. Mechanistic
+        a. understand exact changes in variables that will lead to changes in other variables
+        
+- All the data in the world can't save you if you don't ask the right questions
+
 # **09d** | Physician query listing -------------------------------------------
 1. Purpose: detect query pattern variance among coders
 1. new tables: 09d_all
@@ -64,3 +98,6 @@ CAC001_all_fac:
     1. CAC008_all
 
 # **Prod016** | Coder Productivity -----------------------
+
+# References
+* Leek, Jeffrey, PhD.  Professer Bloomberg School of Public Health, Johns Hopkins University.
