@@ -39,21 +39,40 @@ output: html_notebook
 
 # **09d** | Physician query listing -------------------------------------------
 1. Purpose: detect query pattern variance among coders
-1. new tables: 09d_all
 1. Questions
-    - do some coders never generate queries? 
+    - **do some coders never generate queries?** 
+        - *Descriptive*
         - Rate: Query_Rate = (Queries / Accounts coded) %>% identify lowest performers at facility and hub level
+            - need accounts coded denominator from IP004
+            - 09d will only display coders with at least 1 query / need to pull in all IP/Dx coders
         - Plot: 
-    - Is there a correlation between severity capture and querying
+        - df = query_rate_cdr = Coder | Queries | Accounts Coded | Query Rate
+            - df = vol_cdr = Coder | Accounts coded
+
+    - **Is there a correlation between severity capture and querying**
+        - *Exploratory*
         - Plot: Query_Rate vs average severity score (excluding OB and NB)
-    - In the aggregate, do coders who query more have lower productivity than coders who do not?
-        - Plot: queries vs accounts coded
-    - Is there a correlation between higher precision and accuracy and higher querying?
-        - Plot: Precision vs query rate
-    - Do some facilities appear to have a culture of not querying?
+        - df = query_sev_cdr = Coder | Query Rate | mean(soi+rom)
+            - sev_cdr = Coder | SOI | ROM | avg.sev <- from IP004
+
+    - **In the aggregate, do coders who query more have lower productivity than coders who do not?**
+        - *Predictive* 
+        - Plot: queries (raw #) vs accounts coded
+        - df = query_rate_cdr
+
+    - **Is there a correlation between higher precision and accuracy and higher querying?**
+        - *exploratory*
+        - Plot: Precision (CAC001) vs query rate
+        - df = inner_join(CAC001_all_cdr, query_rate_cdr)
+
+    - **Do some facilities appear to have a culture of not querying?**
+        - *Descriptive*
         - Query rate by hospital then identify lowest facility performers
-    - Are there any facilities that have a wide variation between coders who query and coders who do not?
-        - rate sd(query_rate)
+        df = query_rate_fac = Facility | Queries | Accounts Coded | Query Rate
+
+    - **Are there any facilities that have a wide variation between coders who query and coders who do not?**
+        - rate: sd(query_rate)
+            - again need to include coders with 0 queries
 
 
 # **CAC001** | auto|suggested codes precision and recall -------------------
@@ -94,8 +113,13 @@ CAC001_all_fac:
 # **IP004** | Primary and Secondary DRG Listing ----------------------------------------------------------
 1. Purpose: Coded account inforation including DRGs
 
-2. new tables:
-    1. CAC008_all
+1. Questions
+    - **How do facility volumes compare?**
+        - *Descriptive*
+            - df = vol_cdr = Coder | Accounts coded
+    - **Do IP4 stats measure up with Prod016 stats?**
+        - *Descriptive*
+        - df = Coder | Accounts Coded (Ip4) | Accounts Coded (P16)
 
 # **Prod016** | Coder Productivity -----------------------
 
