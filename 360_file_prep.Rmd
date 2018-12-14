@@ -1,0 +1,214 @@
+---
+title: 'IMPORTANT: 360 file prep'
+table_of_contents: yes
+output: html_notebook
+---
+# This document is important! -------------------------------------------------
+- Failure to adhere to these specifications will result in one of the following:
+    - You will get an error when trying to run the main script
+        - The error may not necessarily be upon file import but could be down in the middle of some other analysis 
+    - You will **NOT** get an error (which is actually worse!)
+        - The routine will run as if your files are formatted appropriatley resulting in reports that _look_ normal but are actually flawed
+        - This means your conclusions may also be flawed
+    
+# 3m reports how to -----------------------------------------------------------
+
+1. log into 360 for the given hub
+2. click reports (upper right)
+2. Select the designated report and adjust the report parameters as indicated below
+    -  Several reports will have multiple versions needed
+        - one for inpatient (ip) and one for outpatient (op)
+        - one for diagnoses (dx) and one for procedures (dx)
+        - one for coder (cdr) and one for facility (fac)
+        - as applicable, we append the abbreviations as suffixes to the report name for easier identification
+    -  As of the date of this writing, the OP and IP NLP engines are distinct.  When it comes to NLP engine tuning opportunities, we want to be specific as to which engine.
+    - From a coder standpoint, ICD-10-CM, ICD-10-PCS, and CPT/HCPCS are three completely different coding schemes.  When it comes to coder education opportunities, we similarly want to be specific as to which type of coding.
+1. After you run each report for the first time you will want to save your criteria
+    - This will save time in the future
+    - *After* a report has compiled, click **"Save As..."** to save the report criteria
+    - The suggested name is provided below (substitute "cf" for the person who will be running the reports)
+    - Another benefit to saved reports is that if you used "quarter -1" as your date range, when you run the saved report the next quarter, the dates should automatically adjust
+1. Next after the report has compiled you will need to **Export To** Excel for some basic file prep
+    - Save or open the downloaded file in Excel
+    - We want the first rown of every CSV to be the header information for the table; you will need to delete the report parameters
+    - For certain "grouped" reports, you will need to copy-down the group information to attach it to each row (usually the coder or facility)
+    - this is a very simple formula
+    - Lastly you will need to save it as a .csv file
+        - there is an excel macro available that makes this faster
+        - load the macro (as allowed by your facility IT department), then add it to your 'quick access' toolbar
+1. generally we will be using 'HIM Coding Reports' but there is one CDI report
+
+# **09d** | Physician query listing -------------------------------------------
+1. Purpose: detect query pattern variance among coders
+1. one file needed: 09d.csv
+1. In 360:
+    1. **Save As...** 
+        - cf_09d_cdr_fac (*note*: usual suffix is minimum necessary grouping but since this is a coder report in the CDI section, recommend more specific; when we save the csv file we can drop the suffix)
+        - *Note*: save the criteria for every report listed below
+    1. Parameters:
+	     	1. Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1 (qtr -1)
+	    	1. Visit Type: -All- | Patient Type:  -All- | Type of Query : -All- | Role of Query Author: Coder | Communication Type: -All- | Queried Provider Dept: -All- | Responding Provider Dept: -All- 
+	    	1. Queried Provider:  -All- | Query Author: -All- | Primary Query Impact: -All- | Secondary Query Impact: -All- | Provider Response: -All- | Responding Provider: -All-
+    		1. Current/Last Location: -All- | Primary Payer: -All- | Financial Class: -All- | Facility:-All- 
+    		1. group 1: Query Author  | Group 2: Facility
+      	1. Columns for Export: All
+1. In Excel
+    1. Delete down to account specific information so the row begins with: `Query Author`, `Facility`, `Total Visits` (etc)
+    1. Extra formula needed = no  
+	  1. save as "09d.csv" (as stated above, you MUST name the csv file exactly as stated for the R script to work. Same is true for all files below)  
+
+# **CAC001** | auto|suggested codes precision and recall -------------------
+1. Purpose: detect variance and assess general effectiveness of the NLP engine. Low rates can be indicative of coder adoption or NLP tuning opportunities.
+1. Four files needed:
+	    1. CAC001_ip_dx.csv
+	    2. CAC001_ip_px.csv
+	    2. CAC001_op_dx.csv
+	    2. CAC001_op_px.csv
+1. in 360
+		1. Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1 
+		1. 3M Patient Type: **Inpatient (then outpatient)** | Visit Type: -All- | Patient Type:  -All- 
+		1. ICD Version: Billable | **Type: IDx (then IProc, then HCPCS)** | Symptom/Historical: Exclude | Codeset Type: HIM | Coder: -All- | Exclude Visits without AutoSuggested Codes: N
+		    - our system does not code ICD-10-PCS on outpatients.  You may need to change at your discretion.
+		1. Primary Payer: -All- | Financial Class: -All- | Facility: -All-
+		1. group 1: Last Reviewer/Coder
+		1. group 2: Facility
+1. in Excel
+		1. Extra formula needed = no
+		1. delete chart
+		1. Delete down to coder specific information so the row beginning |Last Reviewer/coder | Facility | All Suggested |... is row 1
+		1. save as the applicable CSV file name.
+
+
+# **CAC003** | auto-suggested codes precision and recall by code ---------------------
+1. Purpose: Identify low percentage acceptance of certain codes.  Can be used to evaluate coder adoption or NLP engine performance opportunities
+1. Four files needed:
+    1. CAC003_ip_cdr.csv
+    2. CAC003_ip_fac.csv
+    2. CAC003_op_cdr.csv
+    2. CAC003_op_fac.csv
+1. In 360
+		1. Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1 
+		1. Visit Type: -All- | **Patient Type:  I (then O)** | Code: 
+		1. ICD Version: Billable | Type: IDx,IPx | Symptom/Historical: Exclude | Codeset Type: HIM | Coder: -All- | **Precision Threshold : .50 | Recall Threshold : .50** | Exclude Visits without AutoSuggested Codes: N
+		1. Primary Payer: -All- | Financial Class: -All- | Facility: 
+		1. **Group 1: Last Reviewer/Coder (then Facility)**  
+1. in Excel
+		1. delete rows so that first column is table header
+		1. Extra formula needed = No
+		1. save as the applicable csv name in the applicable facility folder
+    1. We do not need to repeat for procedures as we can differentiate in the data
+   	12. But, since we can't pass coder and facility in the same 3M report, we need to run the report again with Facility as the Group 1
+
+# **CAC007** All Codes Entry Method Summary ------------------------
+1. Purpose: determine coder and facility CAC vs manual entry methods
+    - This is a really exciting report!  We can get at coder adoption of CAC
+1. eight files needed:
+    1. CAC007_ip_dx_cdr.csv
+    2. CAC007_ip_dx_fac.csv
+    2. CAC007_ip_px_cdr.csv
+    2. CAC007_ip_px_fac.csv
+    1. CAC007_op_dx_cdr.csv
+    2. CAC007_op_dx_fac.csv
+    2. CAC007_op_px_cdr.csv
+    2. CAC007_op_px_fac.csv
+1. in 360
+    1. Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1  
+    1. **3M Patient Type: Inpatient (then Outpatient)** | Visit Type: -All- | Patient Type:  -All- 
+ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Historical: Exclude | Codeset Type: HIM | Coder: -All- | Exclude Visits without AutoSuggested Codes: N
+    1. Primary Payer: -All- | Financial Class: -All- | Facility: -All-
+    1. **Group 1: Last Reviewer/Coder (then Facility)**  
+1. in Excel
+		2 ***THIS IS DIFFERENT** - keep the blue header this time
+			22. Delete down to "entry method"
+			23. the blue header should be row 1 - Cell A1 = `Entry Method`
+			23. Then, delete the row that begins `Last Reviewer/Coder`
+			1. Save as the applicable CSV name
+	
+# **CAC008** | Auto-suggested codes listing ------------------------------------
+1. Purpose: This report can be used for researching why coders may be rejecting A/S codes
+1. One file needed: CAC008.csv
+    - Notes: 
+        - The nice thing about the output is that it contains the `Dx/Proc` and `Pt Type` fields
+        - This makes it unnecessary to need to run separate versions; *however*, depending on volume of patients on your server, the resulting Excel file may be too big
+        -   i.e. the report may compile but when you attempt to export to Excel, 3M will throw an error
+        - The workaround is to compile for one month at a time
+        - Then you would manually merge the three individual files in Excel and save as the CSV
+1. in 360
+    1. Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1  (unless you need to run one month at a time)     1. Visit Type: -All- | Patient Type:  -All-    
+    1. ICD Version: Billable | Type: IDx,IPx,HCPCS | Codeset Type: HIM | Coder: -All- | Code: 
+    1. Primary Payer: -All- | Financial Class: -All- | Facility: -All-  
+1. In Excel
+		1. Merge individual month files, if needed
+		1. Remove report parameters info; new first row begins with `Dx/Proc`, `Total Codes`, etc
+		1. **Extra formula needed = YES**
+		    1. In cell L1 enter `DxPx`
+		    1. In cell L2 enter: `=if(len(a2)>0,a2,l1) `
+		    1. Fill L2 to end of table (double-click on lower right corner of l2)
+    		1. ctrl+end to make sure it filled all the way down
+1. in Windows (or your computer's file manager)
+    - if you did the month by month method, make sure you delete extra data files
+    
+# **IP004** | Primary and Secondary DRG Listing ----------------------------------------------------------
+1. Purpose: Coded account inforation including DRGs
+    - **Important note**: the routine assumes that you will have a secondary DRG populated 100% of the time.  
+    - The script will parse out APR vs CMS DRGs, and generate reports on each
+    - However if you aren't collecting secondary DRGs, **the resulting data will be skewed**  
+    - Two workarounds:
+        - Filter on applicable financial (e.g. Medicare only for MS-DRG)
+        - If your patient accounting system is capable, you can import a flat file of patient DRG data
+            - this gets complex and unfortunately is beyond my ability to assist you.  Contact your local IT department  
+            - I will set up the basic infrastructure but you will likely need to tweak (especially if your system account number format doesn't match 360's)  
+2. Files Needed:
+    1. CAC008.csv
+3. in 360
+    23. Date / include secondary / primary: coder / secondary: none
+    25. We need to run this file one month at a time and then manually combine in excel - you may or may not need to
+1. In Excel:
+		1. Remove report parameters info; new first row begins with `Coder`, `Financial Class`, etc
+		1. **Extra formula needed = YES**
+		    1. In cell x1 enter `Coder`  (don't worry about the duplicate name)  
+		    1. In cell Y1 Enter `FC`  
+		    24. In cell x2 enter `=IF(LEN(A2)>0,A2,X1) `
+		    1. In cell Y2 enter `=IF(LEN(B2)>0,B2,Y1)  `
+		    1. copy/fill the formula in both X and Y down to the end of your data
+		    - You can click/hold 'handle' of X2 and drag over to Y2, then double-click on that same handle to fill down
+        1. CTRL+END will allow you to verify the formula went all the way to the end
+        1. Additionally here would be a good spot to make sure the total number of patients seems consistent (if not, check your date range)
+
+# **Prod016** | Coder Productivity -----------------------
+1. Purpose:
+2. Files needed:
+    1. Prod016_ip_csv
+    2. Prod016_op_csv
+3. In 360:
+4. In Excel:
+    1. Remove Report parameters info: first row begins with `Coder`, `Visits Accessed`, etc
+    1. Extra formula needed = no
+		1. save as the applicable csv name in the applicable hub folder
+    
+
+
+## Make sure you have all files in all folders.
+- At the end you should have the following reports in each folder
+
+	- CAC001_ip_dx.csv
+  - CAC001_ip_px.csv
+  - CAC001_op_dx.csv
+  - CAC001_op_px.csv
+  - CAC003_ip_cdr.csv
+  - CAC003_ip_fac.csv
+  - CAC003_op_cdr.csv
+  - CAC003_op_fac.csv
+  - CAC007_ip_dx_cdr.csv
+  - CAC007_ip_dx_fac.csv
+  - CAC007_ip_px_cdr.csv
+  - CAC007_ip_px_fac.csv
+  - CAC007_op_dx_cdr.csv
+  - CAC007_op_dx_fac.csv
+  - CAC007_op_px_cdr.csv
+  - CAC007_op_px_fac.csv
+  - CAC008.csv
+  - IP004
+  - Prod016_ip
+  - Prod016_op
+

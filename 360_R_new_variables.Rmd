@@ -1,0 +1,66 @@
+---
+title: "R 360 New Variables and Plots"
+output: html_notebook
+---
+
+# **09d** | Physician query listing -------------------------------------------
+1. Purpose: detect query pattern variance among coders
+1. new tables: 09d_all
+1. Questions
+    - do some coders never generate queries? 
+        - Rate: Query_Rate = (Queries / Accounts coded) %>% identify lowest performers at facility and hub level
+        - Plot: 
+    - Is there a correlation between severity capture and querying
+        - Plot: Query_Rate vs average severity score (excluding OB and NB)
+    - In the aggregate, do coders who query more have lower productivity than coders who do not?
+        - Plot: queries vs accounts coded
+    - Is there a correlation between higher precision and accuracy and higher querying?
+        - Plot: Precision vs query rate
+    - Do some facilities appear to have a culture of not querying?
+        - Query rate by hospital then identify lowest facility performers
+    - Are there any facilities that have a wide variation between coders who query and coders who do not?
+        - rate sd(query_rate)
+
+
+# **CAC001** | auto|suggested codes precision and recall -------------------
+1. Purpose: detect variance and assess general effectiveness of the NLP engine. Low rates can be indicative of coder adoption or NLP tuning opportunities.
+1. Four new tables:
+	    1. CAC001_ip_dx_all
+	    2. CAC001_ip_px_all
+CAC001_all_fac:
+- All_Suggested_fac = sum of all auto-suggested codes at a facility
+- Accepted_fac = sum of all accepted coded at a facility
+- All_coded_fac = sum of total codes at a facility
+- % Precision_fac = Accepted_fac / All suggested_fac
+- % Recall_fac = Accepted_fac / All_coded_fac
+    - Precision and Recall rates are also provided at the hub level
+- 
+
+
+# **CAC003** | auto-suggested codes precision and recall by code ---------------------
+1. Purpose: Identify low percentage acceptance of certain codes.  Can be used to evaluate coder adoption or NLP engine performance opportunities
+1. Four new tables:
+    1. CAC003_ip_cdr_all
+    2. CAC003_ip_fac_all
+
+
+# **CAC007** All Codes Entry Method Summary ------------------------
+1. Purpose: determine coder and facility CAC vs manual entry methods
+    - This is a really exciting report!  We can get at coder adoption of CAC
+1. eight new tables:
+    1. CAC007_ip_dx_cdr_all
+    2. CAC007_ip_dx_fac_all
+
+	
+# **CAC008** | Auto-suggested codes listing ------------------------------------
+1. Purpose: This report can be used for researching why coders may be rejecting A/S codes
+1. One new tables: CAC008_all
+
+    
+# **IP004** | Primary and Secondary DRG Listing ----------------------------------------------------------
+1. Purpose: Coded account inforation including DRGs
+
+2. new tables:
+    1. CAC008_all
+
+# **Prod016** | Coder Productivity -----------------------
