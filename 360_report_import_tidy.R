@@ -95,7 +95,7 @@ for (i in 1:hub) {
     # place a `#` sign in front of the word `separate`
     separate(`Queried Provider`, c("Queried Provider", "QueryMDid"), sep = "[()]") %>% # same as above for physician id; place a # before the word `separate` if you don't need this
     separate(`Responding Provider`, c("Responding Provider", "RespMDid"), sep = "[()]") %>% # same as above for physician id
-    left_join(fac_codes) %>% # this action links the 3M facility name with our internal facility code and regional
+    left_join(fac_codes) %>% # this action links the facility name in the reports with our internal facility code and regional
     # designations.  I will use FAC in this script so even if you only have one facility
     # you will want to create a fac_codes.csv file and put it in your extdata folder
     select(-name_internal) # this action removes the redundant internal facility name
