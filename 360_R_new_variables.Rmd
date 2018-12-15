@@ -14,8 +14,10 @@ output: html_notebook
     1. Exploratory
         a. look at data and find relationships
         b. drive future analysis to confirm
+        c. __Are there any relationships between engine size and gas consumption?__
         c. not the final say - shouldn't be used for generalization or predicting
-        d. correlation is not causation
+        d. __is it because big engines are heavier?  require a higher volume of fuel?__
+        c. correlation is not causation
             - e.g. relationship between shoe size and intellect - the data shows that people with a size 2 are less intelligent than those with size 9.  People with a size 2 are also children where as size 9 are adults!
         e. **Are there any relationships between querying and severity?**
         
@@ -39,7 +41,8 @@ output: html_notebook
 
 # **09d** | Physician query listing -------------------------------------------
 1. Purpose: detect query pattern variance among coders
-1. Questions
+1. Descriptive Questions
+**What do our coder query data say?**
     - **do some coders never generate queries?** 
         - *Descriptive*
         - Rate: Query_Rate = (Queries / Accounts coded) %>% identify lowest performers at facility and hub level
@@ -48,35 +51,85 @@ output: html_notebook
         - Plot: 
         - df = query_rate_cdr = Coder | Queries | Accounts Coded | Query Rate
             - df = vol_cdr = Coder | Accounts coded
+            
+        - Query rate by hospital then identify lowest facility performers
+        df = query_rate_fac = Facility | Queries | Accounts Coded | Query Rate
+        - intervening: is the CDI program effective so coders do not need to query? - facility query rate should incorporate CDI queries
+        
+1. Exploratory Questions
 
+**What are key distinctions between cdr/fac with higher vs lower query rates?**  
+    - 
+
+    -  **Is there a correlation between severity capture and querying**
+        - *Exploratory*
+        - Plot: Query_Rate vs average severity score (excluding OB and NB)
+        - df = query_sev_cdr = Coder | Query Rate | mean(soi+rom)
+            - sev_cdr = Coder | SOI | ROM | avg.sev <- from IP004
+    - **Is there a correlation between higher precision and accuracy and higher querying?**
+        - *exploratory*
+        - Plot: Precision (CAC001) vs query rate
+        - df = inner_join(CAC001_all_cdr, query_rate_cdr)
+        - df = inner_join(CAC001_all_cdr, query_rate_fac)  
+
+1. Inferential Questions
+**What can we conclude by these distinctions? -- If a cdr/fac has a low query rate does that indiate a culture of not querying or is there some other factor?**
+    - **In the aggregate, do coders who query more have lower productivity than coders who do not?**
+        - Plot: queries (raw #) vs accounts coded
+        - df = query_rate_cdr
+    - **Are there any facilities that have a wide variation between coders who query and coders who do not?**
+        - rate: sd(query_rate)
+            - again need to include coders with 0 queries
+1. Predictive Questions
+At this stage we are not interested in predicting coder behavior.  Eventually this would something to be investigated.
+
+1. Causal questions
+**If a coder or facility were to improve query rates, would other metrics improve?**
+
+
+# **CAC001** | auto|suggested codes precision and recall -------------------
+1. Purpose: detect variance and assess general effectiveness of the NLP engine. Low rates can be indicative of coder adoption or NLP tuning opportunities.
+
+1. Descriptive Questions
+**What do our coder and facility P&R data say?**
+    - **identify high/low performers (cdr/fac) with P&R**
+        - std report provides this
+            
+    - **Do some facilities appear to have a culture of not querying?**
+        - *Descriptive*
+        - Query rate by hospital then identify lowest facility performers
+        df = query_rate_fac = Facility | Queries | Accounts Coded | Query Rate
+        - intervening: is the CDI program effective so coders do not need to query? - facility query rate should incorporate CDI queries
+        
+1. Exploratory Questions
+
+**What are key distinctions between cdr/fac with higher vs lower query rates?**  
     - **Is there a correlation between severity capture and querying**
         - *Exploratory*
         - Plot: Query_Rate vs average severity score (excluding OB and NB)
         - df = query_sev_cdr = Coder | Query Rate | mean(soi+rom)
             - sev_cdr = Coder | SOI | ROM | avg.sev <- from IP004
-
-    - **In the aggregate, do coders who query more have lower productivity than coders who do not?**
-        - *Predictive* 
-        - Plot: queries (raw #) vs accounts coded
-        - df = query_rate_cdr
-
     - **Is there a correlation between higher precision and accuracy and higher querying?**
         - *exploratory*
         - Plot: Precision (CAC001) vs query rate
         - df = inner_join(CAC001_all_cdr, query_rate_cdr)
+        - df = inner_join(CAC001_all_cdr, query_rate_fac)  
 
-    - **Do some facilities appear to have a culture of not querying?**
-        - *Descriptive*
-        - Query rate by hospital then identify lowest facility performers
-        df = query_rate_fac = Facility | Queries | Accounts Coded | Query Rate
-
+1. Inferential Questions
+**What can we conclude by these distinctions?**
+    - **In the aggregate, do coders who query more have lower productivity than coders who do not?**
+        - Plot: queries (raw #) vs accounts coded
+        - df = query_rate_cdr
     - **Are there any facilities that have a wide variation between coders who query and coders who do not?**
         - rate: sd(query_rate)
             - again need to include coders with 0 queries
+1. Predictive Questions
+At this stage we are not interested in predicting coder behavior.  Eventually this would something to be investigated.
+
+1. Causal questions
+**If a coder or facility were to improve query rates, would other metrics improve?**
 
 
-# **CAC001** | auto|suggested codes precision and recall -------------------
-1. Purpose: detect variance and assess general effectiveness of the NLP engine. Low rates can be indicative of coder adoption or NLP tuning opportunities.
 1. Four new tables:
 	    1. CAC001_ip_dx_all
 	    2. CAC001_ip_px_all

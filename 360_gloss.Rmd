@@ -1,0 +1,11 @@
+---
+title: "Glossary and Abbreviations"
+output: html_notebook
+---
+
+* **cdr** | the table, value, or plot is at the individual coder level
+* **fac** | the table, value, or plot is at the facility level
+* **grp** | the table, value, or plot is a geographic group of facilities.  My organization uses "Group" essentially synonymous with "region" or "division"
+* **hub** | the grouping is at the 360 hub (server) level.  My organization has eight hubs.
+* **R** |
+* **snake case, snake_case** | the style of naming values and variables in all lowercase with words separated by _ . i_use_snake_case
