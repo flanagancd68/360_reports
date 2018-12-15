@@ -5,6 +5,7 @@ output: html_notebook
 
 * **cdr** | the table, value, or plot is at the individual coder level
 * **fac** | the table, value, or plot is at the facility level
+* **github** | an online site where programmers can store and share code.  The code for this project is available at https://github.com/flanagancd68/360_reports
 * **grp** | the table, value, or plot is a geographic group of facilities.  My organization uses "Group" essentially synonymous with "region" or "division"
 * **hub** | the grouping is at the 360 hub (server) level.  My organization has eight hubs.
 * **R** |
