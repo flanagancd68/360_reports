@@ -1,24 +1,17 @@
-# Package check for required libraries ----------------------------------------
-# install if not present - load - clean up
-{
-  packages <- c("tidyverse", "plotly")
-  package.check <- lapply(packages, FUN = function(x) {
-    if (!require(x, character.only = TRUE)) {
-      install.packages(x, dependencies = TRUE)
-      library(x, character.only = TRUE)
-    }
-  })
-  rm(packages, package.check)
-}
+# Packages required.  Uncomment line below as needed to install
+# install.packages("tidyverse", "plotly")
+library(plotly, tidyverse)
 
 # Collect Info from user ------------------------------------------------------
 {
   options(digits = 4) # precision of output to two decimal places only.  Change if you want more or less
   qtr <- "18Q3" # enter year and quarter being analyzed (inside the "")
   hub <- 8 ## enter TOTAL number of 360 hubs/servers; no quotes
-  
-  setwd("./360_reports_data") #360_reports_data should be in your 360_reports project folder
-} # local 360 files saved
+}  
+  # if you pulled this file from github you should not need to change the 
+  # _w_orking _d_irectory.  If there are errors when you try to read files, 
+  # uncomment and update the line below:
+  #setwd("<path/to/your/data>") 
 
 #  Section I: Import and consolidate 360 reports ----------------------------------------
 ## CRITICAL: read 360_file_prep.Rmd file for pre-formatting specifications. ====
@@ -32,7 +25,7 @@
 ## This just does a count of the files and sends a warning if there is a
 ## mismatch. it doesn't check for proper formatting
 for (i in 1:hub) {
-  path <- paste0("./", i)
+  path <- paste0("./data/", i)
   file_check <- length(list.files(path, pattern = "*.csv"))
   assign(paste0("hub_", i), file_check)
   if (file_check < 21) {
@@ -45,9 +38,9 @@ for (i in 1:hub) {
 }
 
 # read in system facility designations
-fac_codes <- read_csv("./extdata/fac_codes.csv")
+fac_codes <- read_csv("./data/extdata/fac_codes.csv")
 # read in ccmcc table
-ccmcc <- read_csv("./extdata/ccmcc2019.csv")
+ccmcc <- read_csv("./data/extdata/ccmcc2019.csv")
 
 ## 09d Physician query listing ================================================
 ## These routines will import your hub-specific file from each sub folder, do
@@ -58,7 +51,7 @@ ccmcc <- read_csv("./extdata/ccmcc2019.csv")
 ## names - we will fix these later.
 
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/09d.csv")
+  csv_file <- paste0("./data/", i, "/09d.csv")
   CDI09d_hub <- read_csv(csv_file, col_types = cols(
     `Query Author` = col_skip(), Facility = col_skip(), `Total Visits` = col_skip(), `Total Queries` = col_skip(), `Visit ID` = col_character(),
     `SOI/ROM` = col_character(), `SOI/ROM_1` = col_character(),
@@ -101,7 +94,7 @@ for (i in 1:hub) {
     # you will want to create a fac_codes.csv file and put it in your extdata folder
     select(-name_internal) # this action removes the redundant internal facility name
 
-  write_csv(CDI09d_all, paste0("./consolidated/CDI09_all_", qtr, "_.csv")) # this action writes a consolidated CSV file with all hubs
+  write_csv(CDI09d_all, paste0("./data/consolidated/CDI09_all_", qtr, "_.csv")) # this action writes a consolidated CSV file with all hubs
 
   CDI09d_cdr <- CDI09d_all %>%
     filter(`Provider Response` != "Withdrawn/Not Applicable") %>%
@@ -132,7 +125,7 @@ for (i in 1:hub) {
 ### CAC001_ip_dx.csv
 {
   for (i in 1:hub) {
-    csv_file <- paste0("./", i, "/cac001_ip_dx.csv")
+    csv_file <- paste0("./data/", i, "/cac001_ip_dx.csv")
     CAC001_ip_dx <- read_csv(csv_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -149,7 +142,7 @@ for (i in 1:hub) {
   }
   ### CAC001_ip_px.csv
   for (i in 1:hub) {
-    csv_file <- paste0("./", i, "/cac001_ip_px.csv")
+    csv_file <- paste0("./data/", i, "/cac001_ip_px.csv")
     CAC001_ip_px <- read_csv(csv_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -166,7 +159,7 @@ for (i in 1:hub) {
   }
   ### CAC001_op_dx.csv
   for (i in 1:hub) {
-    csv_file <- paste0("./", i, "/cac001_op_dx.csv")
+    csv_file <- paste0("./data/", i, "/cac001_op_dx.csv")
     CAC001_op_dx <- read_csv(csv_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -183,7 +176,7 @@ for (i in 1:hub) {
   }
   ### CAC001_op_px.csv
   for (i in 1:hub) {
-    csv_file <- paste0("./", i, "/cac001_op_px.csv")
+    csv_file <- paste0("./data/", i, "/cac001_op_px.csv")
     CAC001_op_px <- read_csv(csv_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -216,7 +209,7 @@ for (i in 1:hub) {
       `% Precision`, `% Recall`, QTR, PatCls, DxPx
     ) # Rearrange columns.  "From CAC" number by definition is the same as "Accepted"
   rm(CAC001_op_px_all)
-  write_csv(CAC001_all, paste0("./consolidated/CAC001_all", qtr, "_.csv")) # this action writes a consolidated CSV file with all hubs
+  write_csv(CAC001_all, paste0("./data/consolidated/CAC001_all", qtr, "_.csv")) # this action writes a consolidated CSV file with all hubs
 }
 
 CAC001_all_fac <- CAC001_all %>%
@@ -314,8 +307,8 @@ CAC001_all_cdr <- CAC001_all %>%
   left_join(CAC001_all_fac) %>%
   rename(Lead_Faciity = Facility)
 
-write_csv(CAC001_all_cdr, paste0("./consolidated/CAC001_all_cdr", qtr, "_.csv")) # this action writes a consolidated CSV file with all hubs
-write_csv(CAC001_all_fac, paste0("./consolidated/CAC001_all_fac", qtr, "_.csv")) # this action writes a consolidated CSV file with all hubs
+write_csv(CAC001_all_cdr, paste0("./data/consolidated/CAC001_all_cdr", qtr, "_.csv")) # this action writes a consolidated CSV file with all hubs
+write_csv(CAC001_all_fac, paste0("./data/consolidated/CAC001_all_fac", qtr, "_.csv")) # this action writes a consolidated CSV file with all hubs
 
 ## CAC003 auto-suggested codes precision and recall by code ===================
 ## same concept as above.  We can grab Dx/Px from the column with the code, so we
@@ -327,7 +320,7 @@ write_csv(CAC001_all_fac, paste0("./consolidated/CAC001_all_fac", qtr, "_.csv"))
 ### CAC003_ip_cdr.csv
 {
   for (i in 1:hub) {
-    csv_file <- paste0("./", i, "/CAC003_ip_cdr.csv")
+    csv_file <- paste0("./data/", i, "/CAC003_ip_cdr.csv")
     CAC003_ip_cdr <- read_csv(csv_file, col_types = cols(
       `Last Reviewer/Coder` = col_character(), `Dx/Proc` = col_character(), `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -345,7 +338,7 @@ write_csv(CAC001_all_fac, paste0("./consolidated/CAC001_all_fac", qtr, "_.csv"))
 
   ### CAC003_ip_fac.csv
   for (i in 1:hub) {
-    csv_file <- paste0("./", i, "/CAC003_ip_fac.csv")
+    csv_file <- paste0("./data/", i, "/CAC003_ip_fac.csv")
     CAC003_ip_fac <- read_csv(csv_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -363,7 +356,7 @@ write_csv(CAC001_all_fac, paste0("./consolidated/CAC001_all_fac", qtr, "_.csv"))
 
   ### CAC003_op_cdr.csv
   for (i in 1:hub) {
-    csv_file <- paste0("./", i, "/CAC003_op_cdr.csv")
+    csv_file <- paste0("./data/", i, "/CAC003_op_cdr.csv")
     CAC003_op_cdr <- read_csv(csv_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -381,7 +374,7 @@ write_csv(CAC001_all_fac, paste0("./consolidated/CAC001_all_fac", qtr, "_.csv"))
 
   ### CAC003_op_fac.csv
   for (i in 1:hub) {
-    csv_file <- paste0("./", i, "/CAC003_op_fac.csv")
+    csv_file <- paste0("./data/", i, "/CAC003_op_fac.csv")
     CAC003_op_fac <- read_csv(csv_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -447,7 +440,7 @@ rm(CAC003_op_cdr_all, CAC003_ip_cdr_all)
 ### * CAC007 Coder Level ##########
 ### CAC007_ip_dx_cdr.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/CAC007_ip_dx_cdr.csv")
+  csv_file <- paste0("./data/", i, "/CAC007_ip_dx_cdr.csv")
   CAC007_ip_dx_cdr <- read_csv(csv_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Dx", cdrfac = "cdr") %>%
     replace(is.na(.), 0)
@@ -461,7 +454,7 @@ for (i in 1:hub) {
 }
 ### CAC007_op_dx_cdr.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/CAC007_op_dx_cdr.csv")
+  csv_file <- paste0("./data/", i, "/CAC007_op_dx_cdr.csv")
   CAC007_op_dx_cdr <- read_csv(csv_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Dx", cdrfac = "cdr") %>%
     replace(is.na(.), 0)
@@ -476,7 +469,7 @@ for (i in 1:hub) {
 
 ### CAC007_ip_px_cdr.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/CAC007_ip_px_cdr.csv")
+  csv_file <- paste0("./data/", i, "/CAC007_ip_px_cdr.csv")
   CAC007_ip_px_cdr <- read_csv(csv_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Px", cdrfac = "cdr") %>%
     replace(is.na(.), 0)
@@ -490,7 +483,7 @@ for (i in 1:hub) {
 }
 ### CAC007_op_px_cdr.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/CAC007_op_px_cdr.csv")
+  csv_file <- paste0("./data/", i, "/CAC007_op_px_cdr.csv")
   CAC007_op_px_cdr <- read_csv(csv_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Px", cdrfac = "cdr") %>%
     replace(is.na(.), 0)
@@ -518,7 +511,7 @@ for (i in 1:hub) {
 ### * CAC007 Facility Level ###########
 ### CAC007_ip_dx_fac.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/CAC007_ip_dx_fac.csv")
+  csv_file <- paste0("./data/", i, "/CAC007_ip_dx_fac.csv")
   CAC007_ip_dx_fac <- read_csv(csv_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Dx", cdrfac = "fac") %>%
     replace(is.na(.), 0)
@@ -532,7 +525,7 @@ for (i in 1:hub) {
 }
 ### CAC007_op_dx_fac.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/CAC007_op_dx_fac.csv")
+  csv_file <- paste0("./data/", i, "/CAC007_op_dx_fac.csv")
   CAC007_op_dx_fac <- read_csv(csv_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Dx", cdrfac = "fac") %>%
     replace(is.na(.), 0)
@@ -547,7 +540,7 @@ for (i in 1:hub) {
 
 ### CAC007_ip_px_fac.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/CAC007_ip_px_fac.csv")
+  csv_file <- paste0("./data/", i, "/CAC007_ip_px_fac.csv")
   CAC007_ip_px_fac <- read_csv(csv_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Px", cdrfac = "fac") %>%
     replace(is.na(.), 0)
@@ -561,7 +554,7 @@ for (i in 1:hub) {
 }
 ### CAC007_op_px_fac.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/CAC007_op_px_fac.csv")
+  csv_file <- paste0("./data/", i, "/CAC007_op_px_fac.csv")
   CAC007_op_px_fac <- read_csv(csv_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Px", cdrfac = "fac") %>%
     replace(is.na(.), 0)
@@ -589,11 +582,12 @@ for (i in 1:hub) {
 # If anything is slow, it's this section.  If you decide you don't want it,
 # just select the code down to where IP004 starts and hit ctrl+shift+c - this
 # will `comment` it and stop it from running.
+# also if you’re looking for raw speed, try data.table::fread()
 # as above ignore warnings about number of columns not multiple of vector
 # we'll fix that later
 # CAC008.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/CAC008.csv")
+  csv_file <- paste0("./data/", i, "/CAC008.csv")
   CAC008_hub <- read_csv(csv_file, col_types = cols(`Visit ID` = col_character(), MRN = col_skip())) %>%
     mutate(Hub = i, QTR = qtr) %>%
     replace(is.na(.), 0)
@@ -614,7 +608,7 @@ for (i in 1:hub) {
 # Ignore warnings.  21 columns
 # IP004.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/IP004.csv")
+  csv_file <- paste0("./data/", i, "/IP004.csv")
   IP004_hub <- read_csv(csv_file, col_types = cols(
     `Visit ID` = col_character(),
     `SOI/ROM` = col_character(), `SOI/ROM_1` = col_character(),
@@ -637,7 +631,7 @@ for (i in 1:hub) {
 ## Prod016 #######################
 # Prod016_ip.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/Prod016_ip.csv")
+  csv_file <- paste0("./data/", i, "/Prod016_ip.csv")
   Prod016_ip <- read_csv(csv_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "I") %>%
     replace(is.na(.), 0)
@@ -650,7 +644,7 @@ for (i in 1:hub) {
 }
 # Prod016_op.csv
 for (i in 1:hub) {
-  csv_file <- paste0("./", i, "/Prod016_op.csv")
+  csv_file <- paste0("./data/", i, "/Prod016_op.csv")
   Prod016_op <- read_csv(csv_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "O") %>%
     replace(is.na(.), 0)
@@ -666,13 +660,13 @@ rm(Prod016_ip_all, Prod016_op_all)
 
 ## Import misc external data files ###########
 {
-  ccmcc <- read_csv("./extdata/2019ccmccDXlist_nodecimal.csv")
-  ICD10CM <- read_csv("./extdata/201910cmlist_nodecimal.csv")
-  drg <- read_csv("./extdata/DRGGROUPS.csv")
-  keys <- read_csv("./extdata/keys.csv")
-  prterms <- read_csv("./extdata/prterms.csv")
-  lowprecis <- read_csv("./extdata/lowprecis.csv")
-  lowrecall <- read_csv("./extdata/lowrecall.csv")
+  ccmcc <- read_csv("./data/extdata/2019ccmccDXlist_nodecimal.csv")
+  ICD10CM <- read_csv("./data/extdata/201910cmlist_nodecimal.csv")
+  drg <- read_csv("./data/extdata/DRGGROUPS.csv")
+  keys <- read_csv("./data/extdata/keys.csv")
+  prterms <- read_csv("./data/extdata/prterms.csv")
+  lowprecis <- read_csv("./data/extdata/lowprecis.csv")
+  lowrecall <- read_csv("./data/extdata/lowrecall.csv")
 }
 ## Benchmarks: ======
 ## 12/12/2018: 51 seconds including CAC008 (19.27 seconds excluding)

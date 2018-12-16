@@ -10,8 +10,32 @@ output: html_notebook
     - You will **NOT** get an error (which is actually worse!)
         - The routine will run as if your files are formatted appropriatley resulting in reports that _look_ normal but are actually flawed
         - This means your conclusions may also be flawed
+
+# Initial set-up -----------------------------------
+1. Download and install R (aka "Base R")
+1. Download and install Rstudio
+1. Launch Rstudio
+    a. File | New Project | Version Control | Git
+    b. repository url: https://github.com/flanagancd68/360_reports.git
+    c. project directory `360_reports` (should default to this)
+    c. create project as a subdirectory of:
+        a. This is up to you but make it somewhere you can find it later!
+    c. You do not need a github account unless you want to "push" any suggested changes and make them available to everyone.  Feel free to contact me if you wish to become a contributer to the project.
+2. In Windows/File Explorer
+    a. under `360_reports`, create subdirectories `1`, `2`, `3`, etc for each 360 server/hub
+    a. if you only have one server, you only need to create a `1` folder
+    b. This is where the program will be looking for your 360 data files
+    c. there should already be a subdirectory `external` - this is where various CMS files reside.  These will be updated annually.
+    c. there should be a subdirectory `internal`
+        a. please update the csv file with your facility specific data
+        b. We're trying to be as accomodating as we can from single-facility to multiple-facility/single-hub, to multiple-facility/multiple-hub environments
+        c. even if you only have a single facility, please update the csv with your facility nformation - this will allow everyone to use the same code.
+        c. important! save as `fac_codes.csv` in the `internal` subdirectory
+        
+3. Follow the instructions in **360 reports how-to** to compile, reformat and save 360 reports.  If you have multiple hubs, make sure you are saving the report csv files in the applicable hub subdirectory:        
     
-# 3m reports how to -----------------------------------------------------------
+    
+# 360 reports how to -----------------------------------------------------------
 
 1. log into 360 for the given hub
 2. click reports (upper right)
