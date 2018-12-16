@@ -16,7 +16,8 @@
   options(digits = 4) # precision of output to two decimal places only.  Change if you want more or less
   qtr <- "18Q3" # enter year and quarter being analyzed (inside the "")
   hub <- 8 ## enter TOTAL number of 360 hubs/servers; no quotes
-  setwd("C:/Users/chris.flanagan/Documents/360_reports_data") # Change to path where
+  
+  setwd("./360_reports_data") #360_reports_data should be in your 360_reports project folder
 } # local 360 files saved
 
 #  Section I: Import and consolidate 360 reports ----------------------------------------

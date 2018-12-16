@@ -1,0 +1,60 @@
+---
+title: "Introduction to Project"
+output: html_notebook
+---
+
+# Questions
+- In order to know what variables and visualizations we want to create, we need to first ask ourselves what questions are we trying to answer
+    - A failure to do this can result in data overload and/or the recipient wondering what he/she is supposed to do with all this data
+## Exploratory Data Analysis  
+According to Hadley Wickham, there are three components to exploratory data analysis and each involve questions^[Wickam, R for Data Science, Chapter 7 https://r4ds.had.co.nz/exploratory-data-analysis.html]:  
+
+1. Generate questions about your data.
+2. Search for answers by visualising, transforming, and modelling your data.
+3. Use what you learn to refine your questions and/or generate new questions.
+
+The key to asking _quality_ questions is to generate a large _quantity_ of questions.
+
+It's interesting that in my compliance career, most compliance breakdowns could have been prevented if someone had thought to ask the right questions ("is this sustainable?", "how can we validate these results?", or "just because we can, does that mean we should?")
+
+## Common starting questions  
+* Which values are the most common? Why?
+* Which values are rare? Why? Does that match your expectations?
+* Can you see any unusual patterns? What might explain them?
+* How are the observations within each cluster similar to each other?
+* How are the observations in separate clusters different from each other?
+* How can you explain or describe the clusters?
+* Why might the appearance of clusters be misleading?
+# There are six basic categories of questions^[Leek, "Types of Data Science Questions"]  
+    1. Descriptive
+        a. describe but not make decisions/interpret/infer
+        b. How many coders / accounts / queries / codes?
+        
+    1. Exploratory
+        a. look at data and find relationships
+        b. drive future analysis to confirm
+        c. __Are there any relationships between engine size and gas consumption?__
+        c. not the final say - shouldn't be used for generalization or predicting
+        d. __is it because big engines are heavier?  require a higher volume of fuel?__
+        c. correlation is not causation
+            - e.g. relationship between shoe size and intellect - the data shows that people with a size 2 are less intelligent than those with size 9.  People with a size 2 are also children where as size 9 are adults!
+        e. **Are there any relationships between querying and severity?**
+        
+    2. Inferential
+        a. take a small number of observations and extrapolate/generalize
+        b. commonly the goal of statistical analysis - we want to draw conclusions
+        
+    3. Predictive
+        a. More challenging - use data on some objects to predict value of another object
+        b. just because x predicts y doesn't mean that x causes y
+        c. "prediction is hard; especially about the future."
+        d. Nate Silver examples of predicting US elections
+    1. Casual
+        a. if you change one value, will it change anothe?
+        b. **if we improve P&R or the other metrics, will it improve ROI on CAC investement** (generally in terms of improved severity capture and coder productivity)?
+        c. This is the **goal** of anlysis
+    1. Mechanistic
+        a. understand exact changes in variables that will lead to changes in other variables
+        
+- All the data in the world can't save you if you don't ask the right questions
+
