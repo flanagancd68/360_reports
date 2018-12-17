@@ -1,6 +1,6 @@
 # Packages required.  Uncomment line below as needed to install
-# install.packages("tidyverse", "plotly")
-library(plotly, tidyverse)
+# install.packages("tidyverse", "plotly", "stringr")
+library(plotly, tidyverse, stringr)
 
 # Collect Info from user ------------------------------------------------------
 {
