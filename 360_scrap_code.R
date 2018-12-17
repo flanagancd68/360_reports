@@ -569,6 +569,68 @@
 # # } < when everything is final put the whole thing in braces.  This will stop the script on any error
 # # even if in a for loop
 # 
+# library(tidyverse)
+HIM_IP004_cdr <- read_csv("~/proj/monitor/3mh6/HIM.IP004_cdr.csv") %>% 
+  replace(is.na(.),0) %>% 
+  filter(`Disch Date` > 0)  %>%  #removes 3M subtotal rows
+  select(-Coder, -`No Second Group`, -`Total Visits`, -`MRN`, -Name, -`Admit Date`) %>% #removes 3M subtotal columns and other unneeded columns - edit as desired
+  rename(Coder=Coder_1) %>% #usual coder parsing.  Comment out or remove if your coder field does not need formatting
+  separate(Coder, c("Coder","id"),sep="[(]") %>% 
+  separate(id, c("id"), sep="[)]") %>% 
+  separate(`Prin Dx`, c("Dx"),sep="[-]") %>%  # this keeps the code numbers and discards the descriptions, which accounts for the bulk of the bytes in the file size  If I find I need, can call it up from a separate CMS table.
+  separate(`Prin Proc`, c("Px"), sep="[-]") %>% 
+  separate(`Pt Type`, c("Pclass", "Ptype"), sep="[/]") %>% #in one of our hubs, the "ptype is actually the facility campus designation
+  mutate(Dx=str_replace(Dx, " ",""), Px=str_replace(Px, " ",""), Quarter=qtr, Hub=hub, Fac=str_sub(`Visit ID`, 1, 3)) 
+
+# in the 3M report, the primary DRG could be either APR or MS.  Same for secondary.
+# We need a way to be able to filter on JUST APR for SOI/ROM or just MS for CMI
+# There is a better way to do this I'm sure but this way works.  
+# Note that I'm combining different version numbers of the same grouper (e.g. v38 and v39, etc)
+# 
+# Pt <- HIM_IP004_cdr %>% 
+#   select (Coder, id,`Visit ID`, `Disch Date`, LOS, `Pclass`, Ptype, Fac, `Disch Disposition`, `Dx`, `Px`)
+# DRG <- HIM_IP004_cdr %>% 
+#   select(`Visit ID`, DRG, Wgt, `SOI/ROM`, ALOS, GLOS) %>% 
+#   separate(DRG, c("DRG","Grouper"),sep="[()]") %>% 
+#   separate(DRG, c("DRG"), sep="[-]")
+# DRG1 <-HIM_IP004_cdr %>% 
+#   select(`Visit ID`, DRG_1, Wgt_1, `SOI/ROM_1`, ALOS_1, GLOS_1) %>% 
+#   separate(DRG_1, c("DRG","Grouper"),sep="[()]") %>% 
+#   separate(DRG, c("DRG"), sep="[-]") %>% 
+#   rename(Wgt=Wgt_1, `SOI/ROM`= "SOI/ROM_1", ALOS=ALOS_1, GLOS=GLOS_1)
+# # Bring Primary DRGs and Secondary DRGs into one table
+# DRG <- full_join(DRG, DRG1)
+# rm(DRG1)
+# #Now designate MS vs APR DRG Info
+# DRG$Grouper[grepl("APR", DRG$Grouper, ignore.case=FALSE)] <- "APRDRG"
+# DRG$Grouper[grepl("MS", DRG$Grouper, ignore.case=FALSE)] <- "MSDRG" 
+# DRG$Grouper[grepl("TRI", DRG$Grouper, ignore.case=TRUE)] <- "MSDRG" 
+# APR <- DRG %>% 
+#   filter(Grouper=="APRDRG") %>% 
+#   separate(`SOI/ROM`, c("SOI", "ROM"), sep="[/]") %>% 
+#   rename(APRLOS=ALOS, APRGLOS=GLOS, APRRW=Wgt) %>% 
+#   mutate(APRDRG=as.numeric(DRG),SOI=as.numeric(SOI), ROM=as.numeric(ROM), SOIROM=as.numeric(SOI)+as.numeric(ROM)) %>% 
+#   select(-Grouper -DRG)
+# noapr <- anti_join(APR, DRG)
+# MS <- DRG %>% 
+#   mutate(MSDRG=as.numeric(DRG)) %>% 
+#   filter(Grouper=="MSDRG") %>%
+#   select(-DRG, -`SOI/ROM`, -Grouper) %>% 
+#   rename(MSLOS=ALOS, MSGLOS=GLOS, MSRW=Wgt)
+# noms <-anti_join(MS, DRG)
+# #and bring back together again so that we still have one row per pt
+# APRMS <- full_join(APR, MS)
+# Missinggrouper <- full_join(noapr, noms) #hope this is 0 but including just in case we get another grouper we need to map to APR or MS
+# #if so just duplicate the DRG$Grouper[grepl("...")], where ... is some distinct identifier
+# pt_cdr_drg <- full_join(APRMS, Pt)
+# rm(noapr, noms,DRG, Pt, APRMS, APR, MS)
+# 
+# write.csv(pt_cdr_drg, file = paste0("C:/Users/chris.flanagan/Documents/proj/monitor/3mallhub/pt_cdr_drg", qtr,"_",hub,".csv"))
+
+
+# 
+# 
+# 
 test_fill <- read_csv("~/test_fill.csv", col_types = cols(
   `Total Visits` = col_skip(), `Total Queries` = col_skip(), `Visit ID` = col_character(),`Query Author` = col_skip(), Facility = col_skip(), 
   `SOI/ROM` = col_character(), `SOI/ROM_1` = col_character(), `Patient Name`= col_skip(), `Admit Date` = col_skip(),
