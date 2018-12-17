@@ -330,7 +330,7 @@
 #   separate(id, c("id"), sep="[)]") %>% 
 #   separate(`Prin Dx`, c("Dx"),sep="[-]") %>%  # this keeps the code numbers and discards the descriptions, which accounts for the bulk of the bytes in the file size  If I find I need, can call it up from a separate CMS table.
 #   separate(`Prin Proc`, c("Px"), sep="[-]") %>% 
-#   separate(`Pt Type`, c("Pclass", "Ptype"), sep="[/]") %>% #in one of our hubs, the "ptype" is actually the facility campus designation
+#    %>% #in one of our hubs, the "ptype" is actually the facility campus designation
 #   mutate(Dx=str_replace(Dx, " ",""), Px=str_replace(Px, " ",""), Quarter=qtr, Hub=hub, Fac=str_sub(`Visit ID`, 1, 3)) 
 # 
 # # in the 360 report, the primary DRG could be either APR or MS.  Same for secondary.
@@ -338,52 +338,7 @@
 # # There is a better way to do this I'm sure, but this way works.  
 # # Note that I'm combining different version numbers of the same grouper (e.g. v38 and v39, etc)
 # 
-# Pt <- HIM_IP004_cdr %>% 
-#   select (Coder, id,`Visit ID`, `Disch Date`, LOS, `Pclass`, Ptype, Fac, `Disch Disposition`, `Dx`, `Px`)
-# DRG <- HIM_IP004_cdr %>% 
-#   select(`Visit ID`, DRG, Wgt, `SOI/ROM`, ALOS, GLOS) %>% 
-#   separate(DRG, c("DRG","Grouper"),sep="[()]") %>% 
-#   separate(DRG, c("DRG"), sep="[-]")
-# DRG1 <-HIM_IP004_cdr %>% 
-#   select(`Visit ID`, DRG_1, Wgt_1, `SOI/ROM_1`, ALOS_1, GLOS_1) %>% 
-#   separate(DRG_1, c("DRG","Grouper"),sep="[()]") %>% 
-#   separate(DRG, c("DRG"), sep="[-]") %>% 
-#   rename(Wgt=Wgt_1, `SOI/ROM`= "SOI/ROM_1", ALOS=ALOS_1, GLOS=GLOS_1)
-# # Bring Primary DRGs and Secondary DRGs into one table
-# DRG <- full_join(DRG, DRG1)
-# rm(DRG1)
-# #Now designate MS vs APR DRG Info - this is the equivalent of find and replace
-# #As long as the various state APR systems have `APR` in the desciption they will all be classified to APRDRG
-# DRG$Grouper[grepl("APR", DRG$Grouper, ignore.case=FALSE)] <- "APRDRG"
-# DRG$Grouper[grepl("MS", DRG$Grouper, ignore.case=FALSE)] <- "MSDRG" 
-# DRG$Grouper[grepl("TRI", DRG$Grouper, ignore.case=TRUE)] <- "MSDRG" 
-# # if you have a grouper not listed you may need to add it
-# # The first part in green is the string you want to search for
-# # the last part is where you would classify it to APRDRG or MSDRG
-# # see missinggrouper list for possible missing groupers that need to be mapped
-# APR <- DRG %>% 
-#   filter(Grouper=="APRDRG") %>% 
-#   separate(`SOI/ROM`, c("SOI", "ROM"), sep="[/]") %>% 
-#   rename(APRLOS=ALOS, APRGLOS=GLOS, APRRW=Wgt) %>% 
-#   mutate(APRDRG=as.numeric(DRG),SOI=as.numeric(SOI), ROM=as.numeric(ROM), SOIROM=as.numeric(SOI)+as.numeric(ROM)) %>% 
-#   # we count soi+rom score of 7 or 8 as an expected mortality
-#   # the combined score might be useful for detecting any trends with some coders coding lower overall severity than others
-#   select(-Grouper -DRG)
-# noapr <- anti_join(APR, DRG)
-# MS <- DRG %>% 
-#   mutate(MSDRG=as.numeric(DRG)) %>% 
-#   filter(Grouper=="MSDRG") %>%
-#   select(-DRG, -`SOI/ROM`, -Grouper) %>% 
-#   rename(MSLOS=ALOS, MSGLOS=GLOS, MSRW=Wgt)
-# noms <-anti_join(MS, DRG)
-# #and bring back together again so that we still have one row per pt
-# APRMS <- full_join(APR, MS)
-# Missinggrouper <- full_join(noapr, noms) #hope this is 0 but including just in case we get another grouper we need to map to APR or MS
-# #if so just duplicate the DRG$Grouper[grepl("...")], where ... is some distinct identifier
-# pt_cdr_drg <- full_join(APRMS, Pt)
-# rm(noapr, noms,DRG, Pt, APRMS, APR, MS)
 # 
-# write.csv(pt_cdr_drg, file = paste0("./360allhub/pt_cdr_drg", qtr,"_",hub,".csv"))
 # ####### HIM.Prod016 - productivity metrics
 # HIM.Prod016 <- read_csv("HIM.Prod016.csv") %>% 
 # separate(Coder, c("Coder","id"),sep="[(]") %>%  
@@ -613,3 +568,15 @@
 # 
 # # } < when everything is final put the whole thing in braces.  This will stop the script on any error
 # # even if in a for loop
+# 
+test_fill <- read_csv("~/test_fill.csv", col_types = cols(
+  `Total Visits` = col_skip(), `Total Queries` = col_skip(), `Visit ID` = col_character(),`Query Author` = col_skip(), Facility = col_skip(), 
+  `SOI/ROM` = col_character(), `SOI/ROM_1` = col_character(), `Patient Name`= col_skip(), `Admit Date` = col_skip(),
+  MRN = col_skip()
+)) %>% 
+  filter(!is.na(`Visit ID`)) %>% 
+  rename(Coder=`Query Author_1`, Facility=Facility_1) %>% 
+  separate(Coder, c("Coder", "Coderid"), sep = "[()]") %>%
+  separate(`Queried Provider`, c("Queried Provider", "QueryMDid"), sep = "[()]") %>% 
+  separate(`Responding Provider`, c("Responding Provider", "RespMDid"), sep = "[()]") %>% 
+  select(Coder, Coderid, everything())

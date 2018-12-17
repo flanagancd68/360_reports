@@ -78,7 +78,6 @@ output: html_notebook
       	1. Columns for Export: All
 1. In Excel
     1. Delete down to account specific information so the row begins with: `Query Author`, `Facility`, `Total Visits` (etc)
-    1. Extra formula needed = no  
 	  1. save as "09d.csv" (as stated above, you MUST name the csv file exactly as stated for the R script to work. Same is true for all files below)  
 
 # **CAC001** | auto|suggested codes precision and recall -------------------
@@ -97,7 +96,6 @@ output: html_notebook
 		1. group 1: Last Reviewer/Coder
 		1. group 2: Facility
 1. in Excel
-		1. Extra formula needed = no
 		1. delete chart
 		1. Delete down to coder specific information so the row beginning |Last Reviewer/coder | Facility | All Suggested |... is row 1
 		1. save as the applicable CSV file name.
@@ -118,7 +116,6 @@ output: html_notebook
 		1. **Group 1: Last Reviewer/Coder (then Facility)**  
 1. in Excel
 		1. delete rows so that first column is table header
-		1. Extra formula needed = No
 		1. save as the applicable csv name in the applicable facility folder
     1. We do not need to repeat for procedures as we can differentiate in the data
    	12. But, since we can't pass coder and facility in the same 3M report, we need to run the report again with Facility as the Group 1
@@ -164,13 +161,8 @@ ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Hist
 1. In Excel
 		1. Merge individual month files, if needed
 		1. Remove report parameters info; new first row begins with `Dx/Proc`, `Total Codes`, etc
-		1. **Extra formula needed = YES**
-		    1. In cell L1 enter `DxPx`
-		    1. In cell L2 enter: `=if(len(a2)>0,a2,l1) `
-		    1. Fill L2 to end of table (double-click on lower right corner of l2)
-    		1. ctrl+end to make sure it filled all the way down
 1. in Windows (or your computer's file manager)
-    - if you did the month by month method, make sure you delete extra data files
+    - if you did the month by month method, it is recommended to delete the extra data files
     
 # **IP004** | Primary and Secondary DRG Listing ----------------------------------------------------------
 1. Purpose: Coded account inforation including DRGs
