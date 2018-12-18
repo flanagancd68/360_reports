@@ -145,16 +145,13 @@ ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Hist
         - The nice thing about the output is that it contains the `Dx/Proc` and `Pt Type` fields
         - This makes it unnecessary to need to run separate versions; *however*, depending on volume of patients on your server, the resulting Excel file may be too big
         -   i.e. the report may compile but when you attempt to export to Excel, 3M will throw an error
-        - The workaround is to compile for one month at a time
-        - Then you would manually merge the three individual files in Excel and save as the xlsx
+        - The workaround is to compile for ONLY the final month of the quarter
+        - we are just looking for representative accounts; we are not generating any kinds of stats from these
 1. Parameters
     1. Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1  (unless you need to run one month at a time)     1. Visit Type: -All- | Patient Type:  -All-    
     1. ICD Version: Billable | Type: IDx,IPx,HCPCS | Codeset Type: HIM | Coder: -All- | Code: 
     1. Primary Payer: -All- | Financial Class: -All- | Facility: -All-  
-1. In Excel
-		1. Merge individual month files, if needed
-1. in Windows (or your computer's file manager)
-    - if you did the month by month method, it is recommended to delete the extra data files
+
     
 # **IP004** | Primary and Secondary DRG Listing ----------------------------------------------------------
 1. Purpose: Coded account inforation including DRGs

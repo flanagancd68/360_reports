@@ -28,9 +28,9 @@ for (i in 1:hub) {
   path <- paste0("./data/", i)
   file_check <- length(list.files(path, pattern = qtr))
   assign(paste0("hub_", i), file_check)
-  if (file_check < 21) {
+  if (file_check < (21* hub)) {
     file_check
-    stop(paste0("Check: hub ", i, " has ", file_check, " ",qtr, " xlxs  files.  Should be 21."))
+    stop(paste0("Check: hub ", i, " has ", file_check, " ",qtr, " xlxs  files.  Should be at least 21 * the number of hubs."))
   }
   rm(file_check)
   rm(list = ls(pattern = "\\hub_."))
@@ -51,7 +51,7 @@ ccmcc <- read_xlsx("./data/external/19_cm_ccmcc.xlsx")
 ## names - we will fix these later.
 
 for (i in 1:hub) {
-  xl_file <- paste0("./data/", i, "/", qtr, "_09d.xlsx")
+  xl_file <- paste0("./data/internal/", qtr, "_", i, "_09d.xlsx")
   CDI09d_hub <- read_excel(xl_file, col_types = cols(
     `Total Visits` = col_skip(), `Total Queries` = col_skip(), Gender=col_skip(),`Visit ID` = col_character(),`Query Author` = col_skip(), Facility = col_skip(), 
     `SOI/ROM` = col_character(), `SOI/ROM_1` = col_character(), `Patient Name`= col_skip(), `Admit Date` = col_skip(),
@@ -113,7 +113,7 @@ rm(CDI09d_all)
 ### CAC001_ip_dx.xlsx
 {
   for (i in 1:hub) {
-    xlsx_file <- paste0("./data/", i, "/cac001_ip_dx.xlsx")
+xl_file <- paste0("./data/internal/", qtr, "_", i, "_cac001_ip_dx.xlsx")
     CAC001_ip_dx <- read_xlsx(xlsx_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -129,7 +129,7 @@ rm(CDI09d_all)
   }
   ### CAC001_ip_px.xlsx
   for (i in 1:hub) {
-    xlsx_file <- paste0("./data/", i, "/cac001_ip_px.xlsx")
+xl_file <- paste0("./data/internal/", qtr, "_", i, "_cac001_ip_px.xlsx")
     CAC001_ip_px <- read_xlsx(xlsx_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -146,7 +146,7 @@ rm(CDI09d_all)
   }
   ### CAC001_op_dx.xlsx
   for (i in 1:hub) {
-    xlsx_file <- paste0("./data/", i, "/cac001_op_dx.xlsx")
+xl_file <- paste0("./data/internal/", qtr, "_", i, "_cac001_op_dx.xlsx")
     CAC001_op_dx <- read_xlsx(xlsx_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -163,7 +163,7 @@ rm(CDI09d_all)
   }
   ### CAC001_op_px.xlsx
   for (i in 1:hub) {
-    xlsx_file <- paste0("./data/", i, "/cac001_op_px.xlsx")
+xl_file <- paste0("./data/internal/", qtr, "_", i, "_cac001_op_px.xlsx")
     CAC001_op_px <- read_xlsx(xlsx_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -308,7 +308,7 @@ rm(CAC001_all)
 ### CAC003_ip_cdr.xlsx
 {
   for (i in 1:hub) {
-    xlsx_file <- paste0("./data/", i, "/CAC003_ip_cdr.xlsx")
+xl_file <- paste0("./data/internal/", qtr, "_", i, "_CAC003_ip_cdr.xlsx")
     CAC003_ip_cdr <- read_xlsx(xlsx_file, col_types = cols(
       `Last Reviewer/Coder` = col_character(), `Dx/Proc` = col_character(), `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -326,7 +326,7 @@ rm(CAC001_all)
 
   ### CAC003_ip_fac.xlsx
   for (i in 1:hub) {
-    xlsx_file <- paste0("./data/", i, "/CAC003_ip_fac.xlsx")
+xl_file <- paste0("./data/internal/", qtr, "_", i, "_CAC003_ip_fac.xlsx")
     CAC003_ip_fac <- read_xlsx(xlsx_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -344,7 +344,7 @@ rm(CAC001_all)
 
   ### CAC003_op_cdr.xlsx
   for (i in 1:hub) {
-    xlsx_file <- paste0("./data/", i, "/CAC003_op_cdr.xlsx")
+xl_file <- paste0("./data/internal/", qtr, "_", i, "_CAC003_op_cdr.xlsx")
     CAC003_op_cdr <- read_xlsx(xlsx_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -362,7 +362,7 @@ rm(CAC001_all)
 
   ### CAC003_op_fac.xlsx
   for (i in 1:hub) {
-    xlsx_file <- paste0("./data/", i, "/CAC003_op_fac.xlsx")
+xl_file <- paste0("./data/internal/", qtr, "_", i, "_CAC003_op_fac.xlsx")
     CAC003_op_fac <- read_xlsx(xlsx_file, col_types = cols(
       `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
       `All Coded` = col_number(), `All Suggested` = col_number(),
@@ -447,7 +447,7 @@ rm(CAC003_op_cdr_all, CAC003_ip_cdr_all)
 ### * CAC007 Coder Level ##########
 ### CAC007_ip_dx_cdr.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/CAC007_ip_dx_cdr.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_ip_dx_cdr.xlsx")
   CAC007_ip_dx_cdr <- read_xlsx(xlsx_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Dx", cdrfac = "cdr") %>%
     replace(is.na(.), 0)
@@ -461,7 +461,7 @@ for (i in 1:hub) {
 }
 ### CAC007_op_dx_cdr.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/CAC007_op_dx_cdr.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_op_dx_cdr.xlsx")
   CAC007_op_dx_cdr <- read_xlsx(xlsx_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Dx", cdrfac = "cdr") %>%
     replace(is.na(.), 0)
@@ -476,7 +476,7 @@ for (i in 1:hub) {
 
 ### CAC007_ip_px_cdr.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/CAC007_ip_px_cdr.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_ip_px_cdr.xlsx")
   CAC007_ip_px_cdr <- read_xlsx(xlsx_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Px", cdrfac = "cdr") %>%
     replace(is.na(.), 0)
@@ -490,7 +490,7 @@ for (i in 1:hub) {
 }
 ### CAC007_op_px_cdr.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/CAC007_op_px_cdr.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_op_px_cdr.xlsx")
   CAC007_op_px_cdr <- read_xlsx(xlsx_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Px", cdrfac = "cdr") %>%
     replace(is.na(.), 0)
@@ -518,7 +518,7 @@ for (i in 1:hub) {
 ### * CAC007 Facility Level ###########
 ### CAC007_ip_dx_fac.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/CAC007_ip_dx_fac.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_ip_dx_fac.xlsx")
   CAC007_ip_dx_fac <- read_xlsx(xlsx_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Dx", cdrfac = "fac") %>%
     replace(is.na(.), 0)
@@ -532,7 +532,7 @@ for (i in 1:hub) {
 }
 ### CAC007_op_dx_fac.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/CAC007_op_dx_fac.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_op_dx_fac.xlsx")
   CAC007_op_dx_fac <- read_xlsx(xlsx_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Dx", cdrfac = "fac") %>%
     replace(is.na(.), 0)
@@ -547,7 +547,7 @@ for (i in 1:hub) {
 
 ### CAC007_ip_px_fac.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/CAC007_ip_px_fac.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_ip_px_fac.xlsx")
   CAC007_ip_px_fac <- read_xlsx(xlsx_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Px", cdrfac = "fac") %>%
     replace(is.na(.), 0)
@@ -561,7 +561,7 @@ for (i in 1:hub) {
 }
 ### CAC007_op_px_fac.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/CAC007_op_px_fac.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_op_px_fac.xlsx")
   CAC007_op_px_fac <- read_xlsx(xlsx_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Px", cdrfac = "fac") %>%
     replace(is.na(.), 0)
@@ -594,7 +594,7 @@ for (i in 1:hub) {
 # we'll fix that later
 # CAC008.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/CAC008.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC008.xlsx")
   CAC008_hub <- read_xlsx(xlsx_file, col_types = cols(`Visit ID` = col_character(), `Total Codes` = col_skip(),
                                                     MRN = col_skip(), `Patient Name`=col_skip(), `Entry Method`=col_skip(), `Admit Date`=col_skip())) %>%
     fill(`Dx/Proc`) %>% 
@@ -622,7 +622,7 @@ cdr_acct_rej <- cdr_acct_rej %>%
 # Ignore warnings.  21 columns
 # IP004.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/IP004.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_IP004.xlsx")
   IP004_hub <- read_xlsx(xlsx_file, col_types = cols( MRN=col_skip(), `Total Visits`=col_skip(), Name=col_skip(), `Admit Date`=col_skip(), 
     `Visit ID` = col_character(),
     `SOI/ROM` = col_character(), `SOI/ROM_1` = col_character()
@@ -692,7 +692,7 @@ write_excel_csv(pt_cdr_drg, file = paste0("./360allhub/pt_cdr_drg", qtr,"_",hub,
 ## Prod016 #######################
 # Prod016_ip.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/Prod016_ip.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_Prod016_ip.xlsx")
   Prod016_ip <- read_xlsx(xlsx_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "I") %>%
     replace(is.na(.), 0)
@@ -705,7 +705,7 @@ for (i in 1:hub) {
 }
 # Prod016_op.xlsx
 for (i in 1:hub) {
-  xlsx_file <- paste0("./data/", i, "/Prod016_op.xlsx")
+  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_Prod016_op.xlsx")
   Prod016_op <- read_xlsx(xlsx_file) %>%
     mutate(Hub = i, QTR = qtr, PatCls = "O") %>%
     replace(is.na(.), 0)
