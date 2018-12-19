@@ -2,9 +2,26 @@
 title: "R 360 New Variables and Plots"
 output: html_notebook
 ---
-# **09d** | Physician query listing -------------------------------------------
-1. Purpose: detect query pattern variance among coders
-1. Descriptive Questions
+##Initial questions:
+* **How well do coders handle their core responsibilities?**  
+	* Severity
+	* productivity
+	* accuracy 
+
+* **in what ways do coders contribute beyond their core responsibilities**
+    - Coaching (peers, CDI, physicians)
+    - peer review
+    - querying
+    - abstracting
+    - harder to quantify with available data
+* **how do you quantify a 'win' in hospital coding?**  I.e. how do you know whether the team (hospital/market/client) succeeding or failing?
+    - in what ways are coders part of a team? 
+    - May you don’t need 5 "Albert Pujols"" coders if you have one or two, and the others are playing key supporting roles — focus on team results. 
+    - The team (facility) "win" is what counts. It's the hospital provider number, not the coder who is on the claim.
+    - 
+
+The challenge is quality vs quantity a trade off?  Triangle: severity, time, accuracy.   Is it zero sum, where you focus on one at the expense of the other two; Or can the best coder, trained in concepts and process, excell in all three?
+
 **What do our coder query data say?**
     - **do some coders never generate queries?** 
         - *Descriptive*
