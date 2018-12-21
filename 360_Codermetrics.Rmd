@@ -1,0 +1,71 @@
+---
+title: "Codermetrics"
+output: html_notebook
+---
+title:
+# "Codermetrics"
+## Rethinking Coder success beyond accuracy and productivity
+abstract:
+The past several years have seen an exponential growth in the amount of data available in just about every field and discipline.
+During the 20th century in baseball, a batter's success was measured on batting average and that was it.  Many analysts started to conclude that batting average alone was incomplete since it has no correlation to runs, and runs are what win ballbames. 
+With the dawn of the 21st century, a new word started to weave its way into the fabric of the game: "Sabermetrics".  Sabermetrics refers to measuring and analyzing a seemingly countless number of baseball statistics.  For example, we can measure the distance, velocity, and even the launch angle of a batted ball.  This enables baseball statisticians and management to make determinations based on overall success of a player. There is now the concept of a "five-tool player", where batting average is just one of the five categories measured.
+As coding operational or compliance leaders, we have a similarly explosive wealth of data on coder performance available within the 360 platform.  Join us for a lighthearted, interactive discussion on some new ways to meaasure a coder's success beyond accuracy and productivity.  During the discussion, we will explore how baseball's "five tools" might be applied to coder performance.   In other words, let's talk about "Codermetrics"!
+
+
+## outcomes
+baseball: k, bb, 1b, 2b, 3b, hr, hbp, reach on error, other types of outs
+coding: DRG[MDC (1-24), MSDRG and/or APRDRG], SOI (1-4), ROM (1-4), on-hold
+
+Unlike baseball, the main goal with coder metrics is not to award batting titles or send people to the minors, but to detect variation and help everyone improve
+Are high outliers best in case examples or are they skimping on something
+Are low outliers trainable, are there obstacles they have that others do not?
+
+# 1. Hitting for Average = principal diagnosis selection / pepper? ------------------------------------------
+
+Query rates (could be primary or secondary but we need to put it somewhere)
+
+# 2. Hitting for Power = secondary diagnosis selection / severity -------------------------------------------
+
+## rejecting cc/mcc (low outliers only)
+* likely indicative of false-positives or lack of specificity
+ - for the lack of specificity, the coder should be using validate recode
+ * cac003
+## rejecting all other codes (low outliers only)
+
+## Severity slugging percentage==============================================================================
+Just for giggles:
+| Baseball | Coding SOI | Coding SOI*ROM | Multiplier
+|:-|:-:|:-:|:-:|
+|K | 1* | 1    | 0     |
+|BB| -  | 2-3  |  2-3  |
+|1B| 1  | 4    | 4-8   |
+|2B| 2  | 6-8  | 12-16 |
+|3B| 3  | 9-12 | 27-36 |
+|HR| 4  | 16   | 64    |
+
+Then average excluding BB for each coder.  Above the Mendoza line is probably where most coders will end up but those who code toward either severity extreme will be highlighted
+
+## Reimbursement per coded visit
+
+# 3. Baserunning / speed = productivity
+
+## Coder Access Rate (visits coded / visits accessed)
+
+# 4. Throwing / assists = CAC metrics
+## Auto suggested precision (codes accepted / all suggested) and recall (accepted / all coded)  (cdr + fac)
+* CAC001 by ip/op/px/dx
+* goal is 75% in each
+* low outliers could suggest coder adoption or engine performance issues
+
+## Auto suggested methods entry rate (auto-suggested + CDI / manual (exclude other))
+CAC007
+
+## A/S CRS rate
+CAC007
+# 5. Fielding / defense = quality
+## Audit expert DRG change rate (cdr)
+## Compliance audits (fac)
+
+
+# 6. Team wins - how do the various stats interconnect to facility success
+##

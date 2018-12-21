@@ -3,7 +3,8 @@ title: "Introduction to Project"
 output: html_notebook
 ---
 
-# Questions
+
+# Data Analysis Questions
 - In order to know what variables and visualizations we want to create, we need to first ask ourselves what questions are we trying to answer
     - A failure to do this can result in data overload and/or the recipient wondering what he/she is supposed to do with all this data
 ## Exploratory Data Analysis  
