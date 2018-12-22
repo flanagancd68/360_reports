@@ -11,6 +11,15 @@ During the 20th century in baseball, a batter's success was measured on batting 
 With the dawn of the 21st century, a new word started to weave its way into the fabric of the game: "Sabermetrics".  Sabermetrics refers to measuring and analyzing a seemingly countless number of baseball statistics.  For example, we can measure the distance, velocity, and even the launch angle of a batted ball.  This enables baseball statisticians and management to make determinations based on overall success of a player. There is now the concept of a "five-tool player", where batting average is just one of the five categories measured.
 As coding operational or compliance leaders, we have a similarly explosive wealth of data on coder performance available within the 360 platform.  Join us for a lighthearted, interactive discussion on some new ways to meaasure a coder's success beyond accuracy and productivity.  During the discussion, we will explore how baseball's "five tools" might be applied to coder performance.   In other words, let's talk about "Codermetrics"!
 
+The most mean- ingful and useful metrics will allow you to connect and relate coders and teams to their organizational goals.
+Bad metrics will distract and waste time.   Metrics can turn out to be bad if they are either too hard to gather, or too abstract and confusing. 
+
+To evaluate whether a metric itself is good or bad, you can ask yourself the following questions:
+• Is the metric relatively easy to describe and understand?
+• Can the metric show me something I don’t already know?
+• Does the metric clearly relate to a goal I care about?
+
+If the answer to any of the above questions is clearly no, then the metric either needs more work, or it should probably be discarded.
 
 ## outcomes
 baseball: k, bb, 1b, 2b, 3b, hr, hbp, reach on error, other types of outs
@@ -20,9 +29,15 @@ Unlike baseball, the main goal with coder metrics is not to award batting titles
 Are high outliers best in case examples or are they skimping on something
 Are low outliers trainable, are there obstacles they have that others do not?
 
-# 1. Hitting for Average = principal diagnosis selection / pepper? ------------------------------------------
+# 1. Hitting for Average = general code selection patterns / ------------------------------------------
 
-Query rates (could be primary or secondary but we need to put it somewhere)
+*  Query rates (could be primary or secondary but we need to put it somewhere)
+
+*  Pepper
+
+* Unspecified (hard to get to)
+
+* Chronic codes per account coded (hard to get to)
 
 # 2. Hitting for Power = secondary diagnosis selection / severity -------------------------------------------
 
@@ -47,6 +62,10 @@ Then average excluding BB for each coder.  Above the Mendoza line is probably wh
 
 ## Reimbursement per coded visit
 
+## HAC extremes
+IP003
+(Govt expects you to know what's in your data - IP003 tells you if certain coders NEVER have HACs, which should be a red flag)
+
 # 3. Baserunning / speed = productivity
 
 ## Coder Access Rate (visits coded / visits accessed)
@@ -69,3 +88,49 @@ CAC007
 
 # 6. Team wins - how do the various stats interconnect to facility success
 ##
+
+
+# 7. Park adjustment factors
+
+* bed size (quartiles)
+* total discharges (quartlies)
+* complexity --??
+* mom/baby factor - productivity offset and CMI adjustments
+    * applied to 80th percentile facilities with highest proportion of MDC 14 and 15 compared to all MDCs for most recently completed FFY (i.e. Oct 17 - Sep 18)
+    * where we can exclude by payor or mdc 14/15 we do
+    * where we can't, we multiply by .97 for productivity-related metrics and 1.03 for CMI/severity related stats
+    * no adjustment for CAC metrics
+
+
+https://www.baseball-reference.com/about/parkadjust.shtml 
+
+====
+Also video Moneyball for software teamsThe challenge is quality vs quantity a trade off?  Triangle: severity, time, accuracy.   Is it zero sum, where you focus on one at the expense of the other two; Or can the best coder, trained in concepts and process, excell in all three?
+	* How well do coders handle their core responsibilities
+
+		* Severity
+		* productivity
+		* accuracy 
+	* in what ways do coders contribute beyond their core responsibilities
+
+		* Coaching / peer review / querying 
+	* how much do they help others
+
+		* ??
+	* is the team succeeding or failing 
+	* can you categorize coders. May you don’t need 5 Albert Pujols coders if you have one or two, and the others are playing key supporting roles — focus on team results. The team win is what counts. 
+
+Dont want metrics to be divisive. Not a grading system. Meant to help improve. Player = coderTeam = hospital Division = GroupLeague = Company(Pitcher =  in the analogy, physician - but we don't want to 'go there' with docs as adversaries 0 At bat/plate appearance = final coded accountGame = day workedOut = sev 1 Los > gmlos for apr DRG  (soi+rom 1,2)single= sev 1 Los <= gmlos or sev 2 > gmlos (3)Double =  (4,5)
+	* Sev 2 <= gmlos
+	* sev 3 > gmlos
+
+triple = (6)
+	* Sev 3 <= gmlos
+
+hr sev 4 (7,8)Runs = 2b, 3b, hrRunning - productivityStolen base = min/pt day <= Group average for DRG?Caught stealing = min/pt day > group avg for DRGFieldingPutout = using evidence view => 75%===================
+
+Chapter 1Let’s not be too sure that we haven’t been missing something important. Bill James  the metrics we commonly deal with don’t provide enough insight to answer many key questions that we have, such as:• How well is our software team succeeding?• How are individual team members contributing to the team’s success?• What capabilities can be improved to achieve greater success?How even do we define success?For hospitals we need to define winning and losing teams.  Then, Find a way to measure the differences between winning and losing teams.• Find a way to measure the contributions of individual players to their teams.• Determine key player characteristics that are highly correlated with winning or losing.Naturally we, like any workers, might be suspicious about whether good metrics can be found and tell an effective story, and we might be worried that statistics can be misused by managers in performance reviews and such. It is the premise of this book, however, that within our discipline there are a variety of skills and results that we can indeed measure, and from which we can obtain meaningful and useful insights about ourselves and our teams.This method is designed to challenge our assumptions, in hopes that we can better discover what is knowable about the patterns that lead to success. To make them easier to understand and remember, the metrics in this book are named after analogous sports statistics. These metrics are designed to give us some terminology to better communicate, and hopefully to make us think generally about how these types of metrics can be useful in our field. In the end, their value can be measured by how well they help us answer the key questions that we face as to what it means to “win” and how we can better ourselves and our teams.An outlier is more than an anomaly.  An outlier is consistently reproduced. Study outliers
+
+CHAPTER 2- measuring what coders can do. Never mistake activity for achievement. John WoodenMetrics are not grades. Derek Jeter had some below average fielding metrics but hell be a first ballot hall of famer in 2020. We are trying to be fair.  Biggest thing is “my patients ARENT sicker”. So we look at things like per patient day (longer should equal sicker even though it is out of a coders control. Also per weight (1.0 of DRG weight) helps To normalize.   Use alos as proxy for complexity. 
+
+Use stats to identify undervalued codersmetrics can directly contribute to a healthier environment if they are used to help the team improve and succeed—and if they result in better understanding of in- dividual contributions that might not have been fully appreciated before.T

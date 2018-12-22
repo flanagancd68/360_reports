@@ -21,16 +21,16 @@ library(plotly, tidyverse, readxl)
 #  If it is present (it may not always be) it will tell you the folder and file
 #  that was active at the time of the error.
 #  Correct the file, then run the report section again to assure data integrity
-## file check  Should be 21 xlsx files in each sub-folder ======================
+## file check  Should be 23 xlsx files in each sub-folder ======================
 ## This just does a count of the files and sends a warning if there is a
 ## mismatch. it doesn't check for proper formatting
 for (i in 1:hub) {
   path <- paste0("./data/", i)
   file_check <- length(list.files(path, pattern = qtr))
   assign(paste0("hub_", i), file_check)
-  if (file_check < (21* hub)) {
+  if (file_check < (23 * hub)) {
     file_check
-    stop(paste0("Check: hub ", i, " has ", file_check, " ",qtr, " xlxs  files.  Should be at least 21 * the number of hubs."))
+    stop(paste0("Check: hub ", i, " has ", file_check, " ",qtr, " xlxs  files.  Should be at least 23 * the number of hubs."))
   }
   rm(file_check)
   rm(list = ls(pattern = "\\hub_."))

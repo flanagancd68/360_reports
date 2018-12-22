@@ -1,9 +1,12 @@
 ---
 title: 'IMPORTANT: 360 file prep'
 table_of_contents: yes
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
+    toc: TRUE
 ---
-# This document is important! -------------------------------------------------
+# This document is important!
 - Failure to adhere to these specifications will result in one of the following:
     - You will get an error when trying to run the main script
         - The error may not necessarily be upon file import but could be down in the middle of some other analysis 
@@ -11,125 +14,168 @@ output: html_notebook
         - The routine will run as if your files are formatted appropriatley resulting in reports that _look_ normal but are actually flawed
         - This means your conclusions may also be flawed
 
-# Initial set-up -----------------------------------
-1. Download and install R (aka "Base R")
-1. Download and install Rstudio
-1. Launch Rstudio
+# Initial set-up
+
+## Download and install R and Rstudio
+1. Download and install Base R package:
+    a. https://www.r-project.org/
+    b. Select the CRAN Mirror that is closest to you
+    b. Download the applicable Windows, Mac, or Linux package
+4. Download and install R studio console
+    a. must have Base R installed first
+    b. https://www.rstudio.com/products/rstudio/download/
+    c. Unless you know you want/need/can afford a different version, pick `Open Source RStudio Desktop` (Free)
+5. Launch RStudio
+    a. At a console, type
+        a. `install.packages("tidyverse", "plotly")`
+    b. This will download the required packages used by our scripts
+    c. if you don't do this now, you will get an error when you try to run the scripts later
+    
+
+## The 'Master' version of the source code will be maintained at GitHub.com
+1. In Rstudio:
     a. File | New Project | Version Control | Git
     b. repository url: https://github.com/flanagancd68/360_reports.git
     c. project directory `360_reports` (should default to this)
     c. create project as a subdirectory of:
         a. This is up to you but make it somewhere you can find it later!
-    c. You do not need a github account unless you want to "push" any suggested changes and make them available to everyone.  Feel free to contact me if you wish to become a contributer to the project.
-2. In Windows/File Explorer
-    a. under `360_reports`, create subdirectories `1`, `2`, `3`, etc for each 360 server/hub
-    a. if you only have one server, you only need to create a `1` folder
-    b. This is where the program will be looking for your 360 data files
-    c. there should already be a subdirectory `external` - this is where various CMS files reside.  These will be updated annually.
-    c. there should be a subdirectory `internal`
-        a. please update the xlsx file with your facility specific data
-        b. We're trying to be as accomodating as we can from single-facility to multiple-facility/single-hub, to multiple-facility/multiple-hub environments
-        c. even if you only have a single facility, please update the xlsx with your facility nformation - this will allow everyone to use the same code.
-        c. important! save as `fac_codes.xlsx` in the `internal` subdirectory
+    c. For basic, "read-only" use, you do not need a github account.   Feel free to contact me if you wish to become a contributer to the project.
+
+2. The following directories should have been created after you synched up with github
+    a. under `360_reports`, a `data` directory 
+    b. under the `data` directory there should be **three* subfolders:
+        1. `cons` where consolidated reports (e.g. a single file for each report that combines data from multiple 360 hubs) will be saved
+        2. `external`, where various publically available data will be downloaded (e.g. DRG tables and the like)
+        3. `internal`, which is where you will save your 360 reports in Excel format.  The remainder of this document discusses the reports we will be using for our data analysis
         
-3. Follow the instructions in **360 reports how-to** to compile, reformat and save 360 reports.  If you have multiple hubs, make sure you are saving the report xlsx files in the applicable hub subdirectory:        
+## Facility specific information
+- Navigate to the `360_reports/data/external` folder and open `fac_list_template.xlsx`
+- Please update the xlsx file with your facility specific data
+        b. We're trying to be as accomodating as we can from single-facility to multiple-facility/single-hub, to multiple-facility/multiple-hub environments
+        c. **even if you only have a single facility, please update the xlsx with your facility nformation** - this will allow everyone to use the same R code.
+- important! save as `fac_codes.xlsx` in the **`internal`** subdirectory
+       
     
     
-# 360 reports how to -----------------------------------------------------------
+# General information for 360 reports
 
-1. log into 360 for the given hub
-2. click reports (upper right)
-2. Select the designated report and adjust the report parameters as indicated below
-    -  Several reports will have multiple versions needed
-        - one for inpatient (ip) and one for outpatient (op)
-        - one for diagnoses (dx) and one for procedures (dx)
-        - one for coder (cdr) and one for facility (fac)
-        - as applicable, we append the abbreviations as suffixes to the report name for easier identification
-    -  As of the date of this writing, the OP and IP NLP engines are distinct.  When it comes to NLP engine tuning opportunities, we want to be specific as to which engine.
+## Compiling 360 reports
+If you are unfamiliar with how to compile and save 360 reports in Excel format please review the materials from this link (login required):
+- https://apps.3mhis.com/download/3M_Docs_Secured/360_Encompass/360_P2_library/index.htm#reports_360v2.htm
+- The instructions below will assume you know how to do this!
+
+- Select the designated report and adjust the report parameters as indicated in each report specific section below
+- Several reports will have multiple versions needed
+    - one for inpatient (ip) and one for outpatient (op)
+    - one for diagnoses (dx) and one for procedures (dx)
+    - one for coder (cdr) and one for facility (fac)
+    - as applicable, we append the abbreviations as suffixes to the report name for easier identification
+- *Why do we need different versions of the same report?*
+    - As of the date of this writing, the OP and IP NLP engines are distinct.  When it comes to NLP engine tuning opportunities, we want to be specific as to which engine.
     - From a coder standpoint, ICD-10-CM, ICD-10-PCS, and CPT/HCPCS are three completely different coding schemes.  When it comes to coder education opportunities, we similarly want to be specific as to which type of coding.
-1. After you run each report for the first time you will want to save your criteria
-    - This will save time in the future
-    - *After* a report has compiled, click **"Save As..."** to save the report criteria
-    - The suggested name is provided below (substitute "cf" for the person who will be running the reports)
-    - Another benefit to saved reports is that if you used "quarter -1" as your date range, when you run the saved report the next quarter, the dates should automatically adjust
-1. Next after the report has compiled you will need to **Export To** Excel for some basic file prep
-    - Save or open the downloaded file in Excel
-    - We want the first rown of every xlsx to be the header information for the table; you will need to delete the report parameters
-    - For certain "grouped" reports, you will need to copy-down the group information to attach it to each row (usually the coder or facility)
-    - this is a very simple formula
-    - Lastly you will need to save it as a .xlsx file
-        - there is an excel macro available that makes this faster
-        - load the macro (as allowed by your facility IT department), then add it to your 'quick access' toolbar
-1. generally we will be using 'HIM Coding Reports' but there is one CDI report
-1. For additional assistance or information please visit https://apps.3mhis.com/download/3M_Docs_Secured/360_Encompass/360_P2_library/index.htm#reports_360v2.htm
 
-# **09d** | Physician query listing -------------------------------------------
+## Saving report parameters in 360
+
+1. After you run each report for the first time you will want to save your criteria to make things much easier in the future
+    - *After* you have updated each report with the criteria specified below, click the **"Save As..."** to save the report criteria
+    - this will save CDI09d report criteria under "CDI Reports / Saved", and the remaining reports under "HIM Coding Reports / Saved"
+    - The preferred name is provided below and is based on the required Excel file name
+        - you can change the `cf` to whosever initials will be compiling the reports.  This will group them together in 360.
+    - Another benefit to saved reports is that if you used `quarter -1` as your date range, when you run the saved report the next quarter, the dates should automatically adjust
+
+## Exporting reports to Excel Format
+TIP: before hitting the **Export To** button, select and copy the saved name of the report from the list of "Saved" 360 reports.  (You'll see why in a minute...)
+1. Next after the report has compiled you will need to **Export To** | `Excel (.xlsx format)` for some basic file prep
+    - Depending on your browser, a new tab might open or the file might automitically download
+    - if given the option to `Open`, `Save`, or `Save as`:
+        - select "Save As"
+        - save the file in the `360_reports/data/internal` directory
+        - if you copied the name of the report, now simply PASTE (or ctrl+v) in the File Name: box
+        - now simply replace the initials (`cf` in the examples below) with the yyQq corresponding to the report date
+        - This will help to make sure your reports are named correctly 
+    
+
+1. generally we will be using 'HIM Coding Reports' but there is one CDI report
+1. For additional assistance or information please visit 
+
+# .xlsx file naming convention
+
+- yy = two digit year + Qq = calendar quarter + # = hub number + number of 3M report + suffixes as needed to distinguish different groupings of the same report + .xlsx file extension
+- examples: 
+    - **19Q4_3_CAC007_ip_dx_cdr.xlsx**, means the CAC007 report for the 4th quarter 2019 that displays diagnoses for inpatients by coder on hub/server #3, saved as an Excel file
+    - **19Q4_1_IP004.xlsx**, means the IP004 report for the 4th quarter 2019 for hub/server #1 (please add the "_1_" even if you do not have more than one server/hub)
+
+# **09d** | Physician query listing
+
 1. Purpose: detect query pattern variance among coders
-1. one file needed: YYQ#_09d.xlsx (e.g. "19Q1_09d.xlsx")
+1. one file needed: yyQq_h_09d.xlsx (e.g. `19Q1_09d.xlsx`)
 1. Parameters:
-    1. **Save As...** 
-        - cf_09d_cdr_fac (*note*: usual suffix is minimum necessary grouping but since this is a coder report in the CDI section, recommend more specific; when we save the xlsx file we can drop the suffix)
-        - *Note*: save the criteria for every report listed below
-    1. Parameters:
-	     	1. Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1 (qtr -1)
-	    	1. Visit Type: -All- | Patient Type:  -All- | Type of Query : -All- | Role of Query Author: Coder | Communication Type: -All- | Queried Provider Dept: -All- | Responding Provider Dept: -All- 
-	    	1. Queried Provider:  -All- | Query Author: -All- | Primary Query Impact: -All- | Secondary Query Impact: -All- | Provider Response: -All- | Responding Provider: -All-
-    		1. Current/Last Location: -All- | Primary Payer: -All- | Financial Class: -All- | Facility:-All- 
-    		1. group 1: Query Author  | Group 2: Facility
-      	1. Columns for Export: All
-      	1. **Export to:** Excel format
+    - Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1 (qtr -1)
+	  - Visit Type: -All- | Patient Type:  -All- | Type of Query : -All- | Role of Query Author: Coder | Communication Type: -All-
+	  - Queried Provider Dept: -All- | Responding Provider Dept: -All- 
+	  - Queried Provider:  -All- | Query Author: -All- | Primary Query Impact: -All- | Secondary Query Impact: -All- | Provider Response: -All- | Responding Provider: -All-
+    - Current/Last Location: -All- | Primary Payer: -All- | Financial Class: -All- | Facility:-All- 
+    - Group 1: Query Author 
+    - Group 2: Facility
+    - Columns for Export: All
+1. **Save As...**  (`cf_h_09d`)     
+1. **Export to:** Excel format
       	    1. if given the option, "SAVE AS" | enter the filename in the format listed above, in the applicable hub folder.  Then click "open" to edit in Excel.
       	    If not given the option to save as, double click the downloaded folder and open.
       	
 1. In Excel
     1. **This report does nto have a constant header row location** - special handling is required
     1. Delete down to account specific information so the row begins with: `Query Author`, `Facility`, `Total Visits` (etc)
-	  1. save as "YYQ#_09d.xlsx" (where YY is the two digit year and Q# is the quarter # such as Q1, Q2, Q3, or Q4.  as stated above, you MUST name the xlsx file exactly as stated for the R script to work. Same is true for all files below)  
+	  1. save as "yyQq_h_09d.xlsx" (where yy is the two digit year and Q# is the quarter # such as Q1, Q2, Q3, or Q4.  as stated above, you MUST name the xlsx file exactly as stated for the R script to work. Same is true for all files below)  
 
-# **CAC001** | auto|suggested codes precision and recall -------------------
+# **CAC001** | auto|suggested codes precision and recall
 1. Purpose: detect variance and assess general effectiveness of the NLP engine. Low rates can be indicative of coder adoption or NLP tuning opportunities.
 1. Four files needed:
-	    1. YYQ#_CAC001_ip_dx.xlsx
-	    2. YYQ#_CAC001_ip_px.xlsx
-	    2. YYQ#_CAC001_op_dx.xlsx
-	    2. YYQ#_CAC001_op_px.xlsx
+	    1. yyQq_h_CAC001_ip_dx.xlsx  
+	    2. yyQq_h_CAC001_ip_px.xlsx  
+	    2. yyQq_h_CAC001_op_dx.xlsx  
+	    2. yyQq_h_CAC001_op_px.xlsx  
+	    
 1. Parameters
-		1. Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1 
-		1. 3M Patient Type: **Inpatient (then outpatient)** | Visit Type: -All- | Patient Type:  -All- 
-		1. ICD Version: Billable | **Type: IDx (then IProc, then HCPCS)** | Symptom/Historical: Exclude | Codeset Type: HIM | Coder: -All- | Exclude Visits without AutoSuggested Codes: N
+		- Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1   
+		- 3M Patient Type: **Inpatient (then outpatient)** | Visit Type: -All- | Patient Type:  -All-   
+		- ICD Version: Billable | **Type: IDx (then IProc, then HCPCS)** | Symptom/Historical: Exclude | 
+		- Codeset Type: HIM | Coder: -All- | Exclude Visits without AutoSuggested Codes: N
 		    - our system does not code ICD-10-PCS on outpatients.  You may need to change at your discretion.
-		1. Primary Payer: -All- | Financial Class: -All- | Facility: -All-
-		1. group 1: Last Reviewer/Coder
-		1. group 2: Facility
+		- Primary Payer: -All- | Financial Class: -All- | Facility: -All-
+		- group 1: Last Reviewer/Coder
+		- group 2: Facility
 
 
-# **CAC003** | auto-suggested codes precision and recall by code ---------------------
+# **CAC003** | auto-suggested codes precision and recall by code
 1. Purpose: Identify low percentage acceptance of certain codes.  Can be used to evaluate coder adoption or NLP engine performance opportunities
 1. Four files needed:
-    1. YYQ#_CAC003_ip_cdr.xlsx
-    2. YYQ#_CAC003_ip_fac.xlsx
-    2. YYQ#_CAC003_op_cdr.xlsx
-    2. YYQ#_CAC003_op_fac.xlsx
+    1. yyQq_h_CAC003_ip_cdr.xlsx  
+    2. yyQq_h_CAC003_ip_fac.xlsx   
+    2. yyQq_h_CAC003_op_cdr.xlsx  
+    2. yyQq_h_CAC003_op_fac.xlsx  
+
 1. Parameters
-		1. Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1 
-		1. Visit Type: -All- | **Patient Type:  I (then O)** | Code: 
-		1. ICD Version: Billable | Type: IDx,IPx | Symptom/Historical: Exclude | Codeset Type: HIM | Coder: -All- | **Precision Threshold : .50 | Recall Threshold : .50** | Exclude Visits without AutoSuggested Codes: N
-		1. Primary Payer: -All- | Financial Class: -All- | Facility: 
-		1. **Group 1: Last Reviewer/Coder (then Facility)**  
+		- Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1 
+		- Visit Type: -All- | **Patient Type:  I (then O)** | Code: 
+		- ICD Version: Billable | Type: IDx,IPx | Symptom/Historical: Exclude | Codeset Type: HIM | Coder: -All- 
+		- **Precision Threshold : .50 | Recall Threshold : .50** | Exclude Visits without AutoSuggested Codes: N
+		- Primary Payer: -All- | Financial Class: -All- | Facility: 
+		- **Group 1: Last Reviewer/Coder (then Facility)**  
 
 
-# **CAC007** All Codes Entry Method Summary ------------------------
+# **CAC007** All Codes Entry Method Summary
 1. Purpose: determine coder and facility CAC vs manual entry methods
     - This is a really exciting report!  We can get at coder adoption of CAC
 1. eight files needed:
-    1. YYQ#_CAC007_ip_dx_cdr.xlsx
-    2. YYQ#_CAC007_ip_dx_fac.xlsx
-    2. YYQ#_CAC007_ip_px_cdr.xlsx
-    2. YYQ#_CAC007_ip_px_fac.xlsx
-    1. YYQ#_CAC007_op_dx_cdr.xlsx
-    2. YYQ#_CAC007_op_dx_fac.xlsx
-    2. YYQ#_CAC007_op_px_cdr.xlsx
-    2. YYQ#_CAC007_op_px_fac.xlsx
+    1. yyQq_h_CAC007_ip_dx_cdr.xlsx
+    2. yyQq_h_CAC007_ip_dx_fac.xlsx
+    2. yyQq_h_CAC007_ip_px_cdr.xlsx
+    2. yyQq_h_CAC007_ip_px_fac.xlsx
+    1. yyQq_h_CAC007_op_dx_cdr.xlsx
+    2. yyQq_h_CAC007_op_dx_fac.xlsx
+    2. yyQq_h_CAC007_op_px_cdr.xlsx
+    2. yyQq_h_CAC007_op_px_fac.xlsx
 1. Parameters
     1. Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1  
     1. **3M Patient Type: Inpatient (then Outpatient)** | Visit Type: -All- | Patient Type:  -All- 
@@ -138,9 +184,9 @@ ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Hist
     1. **Group 1: Last Reviewer/Coder (then Facility)**  
 
 	
-# **CAC008** | Auto-suggested codes listing ------------------------------------
+# **CAC008** | Auto-suggested codes listing
 1. Purpose: This report can be used for researching why coders may be rejecting A/S codes
-1. One file needed: YYQ#_CAC008.xlsx
+1. One file needed: yyQq_h_CAC008.xlsx
     - Notes: 
         - The nice thing about the output is that it contains the `Dx/Proc` and `Pt Type` fields
         - This makes it unnecessary to need to run separate versions; *however*, depending on volume of patients on your server, the resulting Excel file may be too big
@@ -152,8 +198,19 @@ ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Hist
     1. ICD Version: Billable | Type: IDx,IPx,HCPCS | Codeset Type: HIM | Coder: -All- | Code: 
     1. Primary Payer: -All- | Financial Class: -All- | Facility: -All-  
 
+# **IP003** | HAC DRG Summary
+1. Purpose: determine whether certain coders have variance suggesting over/under-reporting HACS
+2. File needed: yyQq_h_IP003_mcr.xlsx
+3. Parameters:
+    - Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1
+    - Group 2 = **Coder** | Group 3 = **Post HAC DRG**
+    - Visit Type: -All- | Patient Type:  -All- | HIM Coder: -All- | Discharge Disposition: -All- 
+    - Grouper Type: **Medicare** | Group 3 Sort: Group3  | DRG HAC Status: -All- | Code Set: Final | ICD Version: Billable
+    - Primary Payer: -All- | Financial Class: **Medicare and Managed Medicare**  | Facility: -All-
+
+
     
-# **IP004** | Primary and Secondary DRG Listing ----------------------------------------------------------
+# **IP004** | Primary and Secondary DRG Listing
 1. Purpose: Coded account inforation including DRGs
     - **Important note**: the routine assumes that you will have a secondary DRG populated 100% of the time.  
     - The script will parse out APR vs CMS DRGs, and generate reports on each
@@ -164,43 +221,65 @@ ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Hist
             - this gets complex and unfortunately is beyond my ability to assist you.  Contact your local IT department  
             - I will set up the basic infrastructure but you will likely need to tweak (especially if your system account number format doesn't match 360's)  
 2. Files Needed:
-    1. YYQ#_IP004.xlsx
+    1. yyQq_h_IP004.xlsx
 3. Parameters
     23. Date / include secondary / primary: coder / secondary: none
     25. We need to run this file one month at a time and then manually combine in excel - you may or may not need to
 
+# **IPPlus001** | Case Mix Summary
 
-# **Prod016** | Coder Productivity -----------------------
+*Note: choose ***IPPlus001*** and not the regular IP001*
+    - The distinction is that IP001 will only calculate CMI based on the *primary* grouper, where as IPPlus001 will calculate on BOTH primary *and* secondary groupers
+    - in other words, if you are collecting secondary grouper information on every patient, the sum total of your "total visits" column will be double your actual coded accounts
+    - Since the purpose is to gauge relative CMI variation, the actual patient counts is not as important - this is the CMI across all patients whether 100 or 1000
+    - With that said, when including all financial classes, we might consider an "adjustment factor" to offset the low CMI of coders who may code an unusually high amount of delivery and newborn accounts
+
+    
+1. Purpose: determine whether certain coders have variance on CMI across groupers and medical vs surgical
+2. File needed: yyQq_h_IPPlus001.xlsx
+3. Parameters:
+    - Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1
+    - Group 2 = **Coder** | Group 3 = **Financial Class**
+    - Visit Type: -All- | Patient Type: -All- | Coder: -All-
+    - Grouper Type: -All- | ICD Version: Billable | Location: -All- | Discharge Disposition: -All-
+    - Primary Payer: -All- | Financial Class: -All- | Facility: -All-
+
+
+# **Prod016** | Coder Productivity
 1. Purpose:
 2. Files needed:
-    1. YYQ#_Prod016_ip_xlsx
-    2. YYQ#_Prod016_op_xlsx
+    1. yyQq_h_Prod016_ip_xlsx
+    2. yyQq_h_Prod016_op_xlsx
 3. Parameters:
 
     
 
 
-## Make sure you have all files in all folders.
-- At the end you should have the following reports in each folder
+# **Conclusion**
 
-	- YYQ#_CAC001_ip_dx.xlsx
-  - YYQ#_CAC001_ip_px.xlsx
-  - YYQ#_CAC001_op_dx.xlsx
-  - YYQ#_CAC001_op_px.xlsx
-  - YYQ#_CAC003_ip_cdr.xlsx
-  - YYQ#_CAC003_ip_fac.xlsx
-  - YYQ#_CAC003_op_cdr.xlsx
-  - YYQ#_CAC003_op_fac.xlsx
-  - YYQ#_CAC007_ip_dx_cdr.xlsx
-  - YYQ#_CAC007_ip_dx_fac.xlsx
-  - YYQ#_CAC007_ip_px_cdr.xlsx
-  - YYQ#_CAC007_ip_px_fac.xlsx
-  - YYQ#_CAC007_op_dx_cdr.xlsx
-  - YYQ#_CAC007_op_dx_fac.xlsx
-  - YYQ#_CAC007_op_px_cdr.xlsx
-  - YYQ#_CAC007_op_px_fac.xlsx
-  - YYQ#_CAC008.xlsx
-  - YYQ#_IP004
-  - YYQ#_Prod016_ip
-  - YYQ#_Prod016_op
+Make sure you have all files saved.  If you have multiple hubs, there should be the same 23 files for each hub.
+
+	- yyQq_h_CDI09.xlsx
+	- yyQq_h_CAC001_ip_dx.xlsx
+  - yyQq_h_CAC001_ip_px.xlsx
+  - yyQq_h_CAC001_op_dx.xlsx
+  - yyQq_h_CAC001_op_px.xlsx
+  - yyQq_h_CAC003_ip_cdr.xlsx
+  - yyQq_h_CAC003_ip_fac.xlsx
+  - yyQq_h_CAC003_op_cdr.xlsx
+  - yyQq_h_CAC003_op_fac.xlsx
+  - yyQq_h_CAC007_ip_dx_cdr.xlsx
+  - yyQq_h_CAC007_ip_dx_fac.xlsx
+  - yyQq_h_CAC007_ip_px_cdr.xlsx
+  - yyQq_h_CAC007_ip_px_fac.xlsx
+  - yyQq_h_CAC007_op_dx_cdr.xlsx
+  - yyQq_h_CAC007_op_dx_fac.xlsx
+  - yyQq_h_CAC007_op_px_cdr.xlsx
+  - yyQq_h_CAC007_op_px_fac.xlsx
+  - yyQq_h_CAC008.xlsx
+  - yyQq_h_IP003_mcr.xlsx
+  - yyQq_h_IP004
+  - yyQq_h_IPPlus001.xlsx
+  - yyQq_h_Prod016_ip
+  - yyQq_h_Prod016_op
 
