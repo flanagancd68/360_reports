@@ -127,8 +127,71 @@ Dont want metrics to be divisive. Not a grading system. Meant to help improve. P
 triple = (6)
 	* Sev 3 <= gmlos
 
-hr sev 4 (7,8)Runs = 2b, 3b, hrRunning - productivityStolen base = min/pt day <= Group average for DRG?Caught stealing = min/pt day > group avg for DRGFieldingPutout = using evidence view => 75%===================
+hr sev 4 (7,8)Runs = 2b, 3b, hrRunning - productivityStolen base = min/pt day <= Group average for DRG?Caught stealing = min/pt day > group avg for DRGFieldingPutout = using evidence view => 75%
 
+===================
+
+# Data Analysis Questions (<- belongs with 'codermetrics')
+- In order to know what variables and visualizations we want to create, we need to first ask ourselves what questions are we trying to answer
+    - A failure to do this can result in data overload and/or the recipient wondering what he/she is supposed to do with all this data
+## Exploratory Data Analysis  
+According to Hadley Wickham, there are three components to exploratory data analysis and each involve questions^[Wickam, R for Data Science, Chapter 7 https://r4ds.had.co.nz/exploratory-data-analysis.html]:  
+
+1. Generate questions about your data.
+2. Search for answers by visualising, transforming, and modelling your data.
+3. Use what you learn to refine your questions and/or generate new questions.
+
+The key to asking _quality_ questions is to generate a large _quantity_ of questions.
+
+It's interesting that in my compliance career, most compliance breakdowns could have been prevented if someone had thought to ask the right questions ("is this sustainable?", "how can we validate these results?", or "just because we can, does that mean we should?")
+
+## Common starting questions  
+* Which values are the most common? Why?
+* Which values are rare? Why? Does that match your expectations?
+* Can you see any unusual patterns? What might explain them?
+* How are the observations within each cluster similar to each other?
+* How are the observations in separate clusters different from each other?
+* How can you explain or describe the clusters?
+* Why might the appearance of clusters be misleading?
+# There are six basic categories of questions^[Leek, "Types of Data Science Questions"]  
+    1. Descriptive
+        a. describe but not make decisions/interpret/infer
+        b. How many coders / accounts / queries / codes?
+        
+    1. Exploratory
+        a. look at data and find relationships
+        b. drive future analysis to confirm
+        c. __Are there any relationships between engine size and gas consumption?__
+        c. not the final say - shouldn't be used for generalization or predicting
+        d. __is it because big engines are heavier?  require a higher volume of fuel?__
+        c. correlation is not causation
+            - e.g. relationship between shoe size and intellect - the data shows that people with a size 2 are less intelligent than those with size 9.  People with a size 2 are also children where as size 9 are adults!
+        e. **Are there any relationships between querying and severity?**
+        
+    2. Inferential
+        a. take a small number of observations and extrapolate/generalize
+        b. commonly the goal of statistical analysis - we want to draw conclusions
+        
+    3. Predictive
+        a. More challenging - use data on some objects to predict value of another object
+        b. just because x predicts y doesn't mean that x causes y
+        c. "prediction is hard; especially about the future."
+        d. Nate Silver examples of predicting US elections
+    1. Casual
+        a. if you change one value, will it change anothe?
+        b. **if we improve P&R or the other metrics, will it improve ROI on CAC investement** (generally in terms of improved severity capture and coder productivity)?
+        c. This is the **goal** of anlysis
+    1. Mechanistic
+        a. understand exact changes in variables that will lead to changes in other variables
+        
+- All the data in the world can't save you if you don't ask the right questions
+
+
+#keys <- read_xlsx("./data/external/keys.xlsx")
+#prterms <- read_xlsx("./data/external/prterms.xlsx")
+#lowprecis <- read_xlsx("./data/external/lowprecis.xlsx")
+#lowrecall <- read_xlsx("./data/external/lowrecall.xlsx")
+===========
 Chapter 1Let’s not be too sure that we haven’t been missing something important. Bill James  the metrics we commonly deal with don’t provide enough insight to answer many key questions that we have, such as:• How well is our software team succeeding?• How are individual team members contributing to the team’s success?• What capabilities can be improved to achieve greater success?How even do we define success?For hospitals we need to define winning and losing teams.  Then, Find a way to measure the differences between winning and losing teams.• Find a way to measure the contributions of individual players to their teams.• Determine key player characteristics that are highly correlated with winning or losing.Naturally we, like any workers, might be suspicious about whether good metrics can be found and tell an effective story, and we might be worried that statistics can be misused by managers in performance reviews and such. It is the premise of this book, however, that within our discipline there are a variety of skills and results that we can indeed measure, and from which we can obtain meaningful and useful insights about ourselves and our teams.This method is designed to challenge our assumptions, in hopes that we can better discover what is knowable about the patterns that lead to success. To make them easier to understand and remember, the metrics in this book are named after analogous sports statistics. These metrics are designed to give us some terminology to better communicate, and hopefully to make us think generally about how these types of metrics can be useful in our field. In the end, their value can be measured by how well they help us answer the key questions that we face as to what it means to “win” and how we can better ourselves and our teams.An outlier is more than an anomaly.  An outlier is consistently reproduced. Study outliers
 
 CHAPTER 2- measuring what coders can do. Never mistake activity for achievement. John WoodenMetrics are not grades. Derek Jeter had some below average fielding metrics but hell be a first ballot hall of famer in 2020. We are trying to be fair.  Biggest thing is “my patients ARENT sicker”. So we look at things like per patient day (longer should equal sicker even though it is out of a coders control. Also per weight (1.0 of DRG weight) helps To normalize.   Use alos as proxy for complexity. 

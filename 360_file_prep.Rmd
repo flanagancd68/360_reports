@@ -91,7 +91,7 @@ TIP: before hitting the **Export To** button, select and copy the saved name of 
         - select "Save As"
         - save the file in the `360_reports/data/internal` directory
         - if you copied the name of the report, now simply PASTE (or ctrl+v) in the File Name: box
-        - now simply replace the initials (`cf` in the examples below) with the yyQq corresponding to the report date
+        - now simply replace the initials (`cf` in the examples below) with the YYYY.Q corresponding to the report date
         - This will help to make sure your reports are named correctly 
     
 
@@ -100,21 +100,23 @@ TIP: before hitting the **Export To** button, select and copy the saved name of 
 
 # .xlsx file naming convention
 
-- yy = two digit year + Qq = calendar quarter + # = hub number + number of 3M report + suffixes as needed to distinguish different groupings of the same report + .xlsx file extension
+- YYYY.Q = four digit year and calendar quarter (1-4) + # = hub number + number of 3M report + suffixes as needed to distinguish different groupings of the same report + .xlsx file extension
 - examples: 
-    - **19Q4_3_CAC007_ip_dx_cdr.xlsx**, means the CAC007 report for the 4th quarter 2019 that displays diagnoses for inpatients by coder on hub/server #3, saved as an Excel file
-    - **19Q4_1_IP004.xlsx**, means the IP004 report for the 4th quarter 2019 for hub/server #1 (please add the "_1_" even if you do not have more than one server/hub)
+    - **2019.4_3_CAC007_ip_dx_cdr.xlsx**, means the CAC007 report for the 4th quarter 2019 that displays diagnoses for inpatients by coder on hub/server #3, saved as an Excel file
+    - **2019.4_1_IP004.xlsx**, means the IP004 report for the 4th quarter 2019 for hub/server #1 (please add the "_1_" even if you do not have more than one server/hub)
 
 # **09d** | Physician query listing
+***This is the most finicky report we will have.  Please read formatting instructions***
 
 1. Purpose: detect query pattern variance among coders
-1. one file needed: yyQq_h_09d.xlsx (e.g. `19Q1_09d.xlsx`)
+1. one file needed: YYYY.Q_h_09d.xlsx (e.g. `2019.1_09d.xlsx`)
 1. Parameters:
     - Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1 (qtr -1)
 	  - Visit Type: -All- | Patient Type:  -All- | Type of Query : -All- | Role of Query Author: Coder | Communication Type: -All-
 	  - Queried Provider Dept: -All- | Responding Provider Dept: -All- 
 	  - Queried Provider:  -All- | Query Author: -All- | Primary Query Impact: -All- | Secondary Query Impact: -All- | Provider Response: -All- | Responding Provider: -All-
     - Current/Last Location: -All- | Primary Payer: -All- | Financial Class: -All- | Facility:-All- 
+    - include comments **No**
     - Group 1: Query Author 
     - Group 2: Facility
     - Columns for Export: All
@@ -126,15 +128,15 @@ TIP: before hitting the **Export To** button, select and copy the saved name of 
 1. In Excel
     1. **This report does nto have a constant header row location** - special handling is required
     1. Delete down to account specific information so the row begins with: `Query Author`, `Facility`, `Total Visits` (etc)
-	  1. save as "yyQq_h_09d.xlsx" (where yy is the two digit year and Q# is the quarter # such as Q1, Q2, Q3, or Q4.  as stated above, you MUST name the xlsx file exactly as stated for the R script to work. Same is true for all files below)  
+	  1. save as "YYYY.Q_h_09d.xlsx" (where yy is the two digit year and Q# is the quarter # such as Q1, Q2, Q3, or Q4.  as stated above, you MUST name the xlsx file exactly as stated for the R script to work. Same is true for all files below)  
 
 # **CAC001** | auto|suggested codes precision and recall
 1. Purpose: detect variance and assess general effectiveness of the NLP engine. Low rates can be indicative of coder adoption or NLP tuning opportunities.
 1. Four files needed:
-	    1. yyQq_h_CAC001_ip_dx.xlsx  
-	    2. yyQq_h_CAC001_ip_px.xlsx  
-	    2. yyQq_h_CAC001_op_dx.xlsx  
-	    2. yyQq_h_CAC001_op_px.xlsx  
+	    1. YYYY.Q_h_CAC001_ip_dx.xlsx  
+	    2. YYYY.Q_h_CAC001_ip_px.xlsx  
+	    2. YYYY.Q_h_CAC001_op_dx.xlsx  
+	    2. YYYY.Q_h_CAC001_op_px.xlsx  
 	    
 1. Parameters
 		- Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1   
@@ -150,10 +152,10 @@ TIP: before hitting the **Export To** button, select and copy the saved name of 
 # **CAC003** | auto-suggested codes precision and recall by code
 1. Purpose: Identify low percentage acceptance of certain codes.  Can be used to evaluate coder adoption or NLP engine performance opportunities
 1. Four files needed:
-    1. yyQq_h_CAC003_ip_cdr.xlsx  
-    2. yyQq_h_CAC003_ip_fac.xlsx   
-    2. yyQq_h_CAC003_op_cdr.xlsx  
-    2. yyQq_h_CAC003_op_fac.xlsx  
+    1. YYYY.Q_h_CAC003_ip_cdr.xlsx  
+    2. YYYY.Q_h_CAC003_ip_fac.xlsx   
+    2. YYYY.Q_h_CAC003_op_cdr.xlsx  
+    2. YYYY.Q_h_CAC003_op_fac.xlsx  
 
 1. Parameters
 		- Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1 
@@ -168,14 +170,14 @@ TIP: before hitting the **Export To** button, select and copy the saved name of 
 1. Purpose: determine coder and facility CAC vs manual entry methods
     - This is a really exciting report!  We can get at coder adoption of CAC
 1. eight files needed:
-    1. yyQq_h_CAC007_ip_dx_cdr.xlsx
-    2. yyQq_h_CAC007_ip_dx_fac.xlsx
-    2. yyQq_h_CAC007_ip_px_cdr.xlsx
-    2. yyQq_h_CAC007_ip_px_fac.xlsx
-    1. yyQq_h_CAC007_op_dx_cdr.xlsx
-    2. yyQq_h_CAC007_op_dx_fac.xlsx
-    2. yyQq_h_CAC007_op_px_cdr.xlsx
-    2. yyQq_h_CAC007_op_px_fac.xlsx
+    1. YYYY.Q_h_CAC007_ip_dx_cdr.xlsx
+    2. YYYY.Q_h_CAC007_ip_dx_fac.xlsx
+    2. YYYY.Q_h_CAC007_ip_px_cdr.xlsx
+    2. YYYY.Q_h_CAC007_ip_px_fac.xlsx
+    1. YYYY.Q_h_CAC007_op_dx_cdr.xlsx
+    2. YYYY.Q_h_CAC007_op_dx_fac.xlsx
+    2. YYYY.Q_h_CAC007_op_px_cdr.xlsx
+    2. YYYY.Q_h_CAC007_op_px_fac.xlsx
 1. Parameters
     1. Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1  
     1. **3M Patient Type: Inpatient (then Outpatient)** | Visit Type: -All- | Patient Type:  -All- 
@@ -186,7 +188,7 @@ ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Hist
 	
 # **CAC008** | Auto-suggested codes listing
 1. Purpose: This report can be used for researching why coders may be rejecting A/S codes
-1. One file needed: yyQq_h_CAC008.xlsx
+1. One file needed: YYYY.Q_h_CAC008.xlsx
     - Notes: 
         - The nice thing about the output is that it contains the `Dx/Proc` and `Pt Type` fields
         - This makes it unnecessary to need to run separate versions; *however*, depending on volume of patients on your server, the resulting Excel file may be too big
@@ -200,7 +202,7 @@ ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Hist
 
 # **IP003** | HAC DRG Summary
 1. Purpose: determine whether certain coders have variance suggesting over/under-reporting HACS
-2. File needed: yyQq_h_IP003_mcr.xlsx
+2. File needed: YYYY.Q_h_IP003_mcr.xlsx
 3. Parameters:
     - Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1
     - Group 2 = **Coder** | Group 3 = **Post HAC DRG**
@@ -221,7 +223,7 @@ ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Hist
             - this gets complex and unfortunately is beyond my ability to assist you.  Contact your local IT department  
             - I will set up the basic infrastructure but you will likely need to tweak (especially if your system account number format doesn't match 360's)  
 2. Files Needed:
-    1. yyQq_h_IP004.xlsx
+    1. YYYY.Q_h_IP004.xlsx
 3. Parameters
     23. Date / include secondary / primary: coder / secondary: none
     25. We need to run this file one month at a time and then manually combine in excel - you may or may not need to
@@ -236,7 +238,7 @@ ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Hist
 
     
 1. Purpose: determine whether certain coders have variance on CMI across groupers and medical vs surgical
-2. File needed: yyQq_h_IPPlus001.xlsx
+2. File needed: YYYY.Q_h_IPPlus001.xlsx
 3. Parameters:
     - Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1
     - Group 2 = **Coder** | Group 3 = **Financial Class**
@@ -248,8 +250,8 @@ ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Hist
 # **Prod016** | Coder Productivity
 1. Purpose:
 2. Files needed:
-    1. yyQq_h_Prod016_ip_xlsx
-    2. yyQq_h_Prod016_op_xlsx
+    1. YYYY.Q_h_Prod016_ip_xlsx
+    2. YYYY.Q_h_Prod016_op_xlsx
 3. Parameters:
 
     
@@ -259,27 +261,27 @@ ICD Version: Billable | **Type: IDx (then I10 Proc, then HCPCS)** | Symptom/Hist
 
 Make sure you have all files saved.  If you have multiple hubs, there should be the same 23 files for each hub.
 
-	- yyQq_h_CDI09.xlsx
-	- yyQq_h_CAC001_ip_dx.xlsx
-  - yyQq_h_CAC001_ip_px.xlsx
-  - yyQq_h_CAC001_op_dx.xlsx
-  - yyQq_h_CAC001_op_px.xlsx
-  - yyQq_h_CAC003_ip_cdr.xlsx
-  - yyQq_h_CAC003_ip_fac.xlsx
-  - yyQq_h_CAC003_op_cdr.xlsx
-  - yyQq_h_CAC003_op_fac.xlsx
-  - yyQq_h_CAC007_ip_dx_cdr.xlsx
-  - yyQq_h_CAC007_ip_dx_fac.xlsx
-  - yyQq_h_CAC007_ip_px_cdr.xlsx
-  - yyQq_h_CAC007_ip_px_fac.xlsx
-  - yyQq_h_CAC007_op_dx_cdr.xlsx
-  - yyQq_h_CAC007_op_dx_fac.xlsx
-  - yyQq_h_CAC007_op_px_cdr.xlsx
-  - yyQq_h_CAC007_op_px_fac.xlsx
-  - yyQq_h_CAC008.xlsx
-  - yyQq_h_IP003_mcr.xlsx
-  - yyQq_h_IP004
-  - yyQq_h_IPPlus001.xlsx
-  - yyQq_h_Prod016_ip
-  - yyQq_h_Prod016_op
+	- YYYY.Q_h_CDI09.xlsx
+	- YYYY.Q_h_CAC001_ip_dx.xlsx
+  - YYYY.Q_h_CAC001_ip_px.xlsx
+  - YYYY.Q_h_CAC001_op_dx.xlsx
+  - YYYY.Q_h_CAC001_op_px.xlsx
+  - YYYY.Q_h_CAC003_ip_cdr.xlsx
+  - YYYY.Q_h_CAC003_ip_fac.xlsx
+  - YYYY.Q_h_CAC003_op_cdr.xlsx
+  - YYYY.Q_h_CAC003_op_fac.xlsx
+  - YYYY.Q_h_CAC007_ip_dx_cdr.xlsx
+  - YYYY.Q_h_CAC007_ip_dx_fac.xlsx
+  - YYYY.Q_h_CAC007_ip_px_cdr.xlsx
+  - YYYY.Q_h_CAC007_ip_px_fac.xlsx
+  - YYYY.Q_h_CAC007_op_dx_cdr.xlsx
+  - YYYY.Q_h_CAC007_op_dx_fac.xlsx
+  - YYYY.Q_h_CAC007_op_px_cdr.xlsx
+  - YYYY.Q_h_CAC007_op_px_fac.xlsx
+  - YYYY.Q_h_CAC008.xlsx
+  - YYYY.Q_h_IP003_mcr.xlsx
+  - YYYY.Q_h_IP004
+  - YYYY.Q_h_IPPlus001.xlsx
+  - YYYY.Q_h_Prod016_ip
+  - YYYY.Q_h_Prod016_op
 

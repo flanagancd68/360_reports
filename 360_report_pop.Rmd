@@ -1,0 +1,22 @@
+---
+title: "Make 360 Reports POP!"
+output: html_notebook
+---
+# Post Processing
+* A wealth of data in 360
+* "Fix it in the mix" or "fix it in post"
+    * Common photo software is so prevalant it has become it's own verb
+* There is a free and opensource application called R that is essentially post processing for data analysis
+
+
+# Why do this?
+| problem | solve |
+|:---------------------- |:----------------------------------|
+|Multiple 360 server installations ("hubs") - difficult to report across system  | R swiftly reads each hubs report and consolidates|
+|similar to above, there is no easy way to report on a coder's body of work if they code across multiple hubs (may be solved by self-service reporting TBD) | with the above consolidation, getting coder level data is easy|
+|Excel struggles with iterations in large files.  100,000 rows with several columns will take a long time to process | R manages memory differently. 1,000,000 rows will take longer to load but computes in a fraction of the time |
+|Reviewing comparative timeframes can't be done with 360 reports | with programming, each new quarter is added to the previous |
+|ICD-10-CM, ICD-10-PCS, and CPT/HCPCS are very different skill sets; with 360 you have to run multiple reports, then not easy to reconsolidate to report on a coder's body of work | you still have to run separate reports but we add colums with "I" or "O", and "Dx" or "Px"
+
+# What is R
+* 

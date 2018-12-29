@@ -331,7 +331,7 @@
 #   separate(`Prin Dx`, c("Dx"),sep="[-]") %>%  # this keeps the code numbers and discards the descriptions, which accounts for the bulk of the bytes in the file size  If I find I need, can call it up from a separate CMS table.
 #   separate(`Prin Proc`, c("Px"), sep="[-]") %>% 
 #    %>% #in one of our hubs, the "ptype" is actually the facility campus designation
-#   mutate(Dx=str_replace(Dx, " ",""), Px=str_replace(Px, " ",""), Quarter=qtr, Hub=hub, Fac=str_sub(`Visit ID`, 1, 3)) 
+#   
 # 
 # # in the 360 report, the primary DRG could be either APR or MS.  Same for secondary.
 # # We need a way to be able to filter on JUST APR for SOI/ROM or just MS for CMI

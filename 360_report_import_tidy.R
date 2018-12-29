@@ -1,32 +1,44 @@
+{# Intro =====
 # Packages required.  Uncomment line below as needed to install
 # install.packages("tidyverse", "plotly")
-library(plotly, tidyverse, readxl)
-
-# Collect Info from user ------------------------------------------------------
 {
-  options(digits = 4) # precision of output to two decimal places only.  Change if you want more or less
-  qtr <- "18Q3" # enter year and quarter being analyzed (inside the "")
-  hub <- 8 ## enter TOTAL number of 360 hubs/servers; no quotes
-}  
+library(plotly)
+library(shiny)
+library(readxl)
+library(readr)
+library(tidyverse)
+library(data.table)
+options(digits = 5)
+}
+# Collect Info from user
+
+  qtr <- 2018.1   # enter year and quarter being analyzed.  If you want month do yyyy.mm (add leading 0)
+  keep_thru <- 2018.1 # over time, some of the consolidated files will become enormous. This value will filter (i.e. delete) data less then
+                         # or equal to the quarter you specify.  See help documentation.
+                         # Note that this will delete data from your consolidated file. Backups are recommended
+  hub <- 7## enter TOTAL number of 360 hubs/servers; no quotes
+
   # if you pulled this file from github you should not need to change the 
   # _w_orking _d_irectory.  If there are errors when you try to read files, 
   # uncomment and update the line below:
   #setwd("<path/to/your/data>") 
+source("360_cust_funs.R")
 
-#  Section I: Import and consolidate 360 reports ----------------------------------------
-## CRITICAL: read 360_file_prep.Rmd file for pre-formatting specifications. ====
+
+#  Section I: Import and consolidate 360 reports
+## CRITICAL: read 360_file_prep.Rmd file for pre-formatting specifications.
 #  If your 360 xlsx files are not formatted EXACTLY as stated, you may receive
 #  errors, or worse, results that are not accurate
-#  If you DO get an error check your environment for the value of `xlsx_file`.
+#  If you DO get an error check your environment for the value of `xl_file`.
 #  If it is present (it may not always be) it will tell you the folder and file
 #  that was active at the time of the error.
 #  Correct the file, then run the report section again to assure data integrity
-## file check  Should be 23 xlsx files in each sub-folder ======================
+## file check  Should be 23 xlsx files in each sub-folder 
 ## This just does a count of the files and sends a warning if there is a
 ## mismatch. it doesn't check for proper formatting
 for (i in 1:hub) {
-  path <- paste0("./data/", i)
-  file_check <- length(list.files(path, pattern = qtr))
+  path <- paste0("./data/internal/")
+  file_check <- length(list.files(path, pattern = as.character(qtr)))
   assign(paste0("hub_", i), file_check)
   if (file_check < (23 * hub)) {
     file_check
@@ -37,631 +49,419 @@ for (i in 1:hub) {
   rm(i, path)
 }
 
-# read in system facility designations
+# read system facility designations IMPORTANT (even if you only have one facility). See instructructions
 fac_list <- read_xlsx("./data/internal/fac_list.xlsx")
-# read in ccmcc table
-ccmcc <- read_xlsx("./data/external/19_cm_ccmcc.xlsx")
-
-## 09d Physician query listing ================================================
-## These routines will import your hub-specific file from each sub folder, do
-## some minor clean up, and then consolidate into a single dataframe.  We add columns
-## for the hub and quarter being evaluated.  The for loop just tells R to repeat
-## the process for however many hubs you specified above under "collect user
-## info".  You can ignore the warnings.  The 360 report has duplicate column
-## names - we will fix these later.
-
-for (i in 1:hub) {
-  xl_file <- paste0("./data/internal/", qtr, "_", i, "_09d.xlsx")
-  CDI09d_hub <- read_excel(xl_file, col_types = cols(
-    `Total Visits` = col_skip(), `Total Queries` = col_skip(), Gender=col_skip(),`Visit ID` = col_character(),`Query Author` = col_skip(), Facility = col_skip(), 
-    `SOI/ROM` = col_character(), `SOI/ROM_1` = col_character(), `Patient Name`= col_skip(), `Admit Date` = col_skip(),
-    MRN = col_skip()
-  )) %>% 
-    filter(!is.na(`Visit ID`),`Provider Response` != "Withdrawn/Not Applicable") %>% 
-    rename(Coder=`Query Author_1`, Facility=Facility_1) %>% 
-    separate(Coder, c("Coder", "Coderid"), sep = "[()]") %>%
-    separate(`Queried Provider`, c("Queried Provider", "QueryMDid"), sep = "[()]") %>% 
-    separate(`Responding Provider`, c("Responding Provider", "RespMDid"), sep = "[()]") %>% 
-    select(Coder, Coderid, everything()) %>% 
-    mutate(Hub = i, QTR = qtr, Fac = str_sub(`Visit ID`, 1, 3))
-
-  if (i == 1) {
-    CDI09d_all <- CDI09d_hub
-    next
-  }
-  CDI09d_all <- full_join(CDI09d_all, CDI09d_hub)
-  rm(CDI09d_hub)
+# read helper data files
+read_ext_file("ahrq_ccs")
+read_ext_file("drg_apr")
+read_ext_file("drg_ms")
+read_ext_file("icd10_ccmcc")
+read_ext_file("icd10_chronic")
+read_ext_file("icd10_unspecified")
+read_ext_file("icd10cm_desc")
+read_ext_file("icd10pcs_desc")
 }
+{# CAC001 | auto|suggested codes precision and recall =========================
+ ## read data files
 
-## This next section cleans up the files a bit and finally saves to the cons folder.
-{
-  CDI09d_all <- CDI09d_all %>%
-       left_join(fac_list) %>% # this action links the facility name in the reports with our internal facility code and regional
-    # designations.  I will use FAC in this script so even if you only have one facility
-    # you will want to create a fac_list.xlsx file and put it in your external folder
-    select(-name_internal) # this action removes the redundant internal facility name
-
-  write_excel_csv(CDI09d_all, paste0("./data/cons/CDI09_all_", qtr, "_.xlsx")) # this action writes a cons xlsx file with all hubs
-
-# high level stats by coder and facility
-cdr_qry <- CDI09d_all %>%
-    group_by(Coder) %>%
- summarize(qry_n_cdr = n()) %>% 
-  ungroup() %>% 
-  mutate(qry_prptn_cdr = qry_n_cdr/sum(qry_n_cdr), qry_dstn_mean_cdr=qry_n_cdr -mean(qry_n_cdr)) %>% 
-  arrange(desc(qry_dstn_mean_cdr))
-
-fac_qry <-CDI09d_all %>%
-  group_by(Facility) %>%
-  summarize(qry_n_fac = n()) %>% 
-  ungroup() %>% 
-  mutate(qry_prptn_fac = qry_n_fac/sum(qry_n_fac), qry_dstn_mean_fac=qry_n_fac -mean(qry_n_fac)) %>% 
-  arrange(desc(qry_dstn_mean_fac))
-write_excel_csv(cdr_qry, paste0("./data/cons/cdr_qry", qtr, "_.xlsx")) # this action writes a cons xlsx file with all hubs
-write_excel_csv(fac_qry, paste0("./data/cons/fac_qry", qtr, "_.xlsx")) # this action writes a cons xlsx file with all hubs
-rm(CDI09d_all)
-}
-
-# Note - generally, the comments above will apply to all files we will import.
-# To reduce clutter, I will limit comments going forward.
-#
-#
-## CAC001 | auto|suggested codes precision and recall =========================
-## Same general concept as with the CDI report.  With CAC001 we will tag the
-## four separate reports as either IP or OP and then DX or PX, then
-## consolidate everything together into one table - should be 12 columns
-### CAC001_ip_dx.xlsx
-{
-  for (i in 1:hub) {
-xl_file <- paste0("./data/internal/", qtr, "_", i, "_cac001_ip_dx.xlsx")
-    CAC001_ip_dx <- read_xlsx(xlsx_file, col_types = cols(
-      `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
-      `All Coded` = col_number(), `All Suggested` = col_number(),
-      `From CAC` = col_skip()
-    )) %>%
-      mutate(Hub = i, QTR = qtr, PatCls = "I", DxPx = "Dx")
-    if (i == 1) {
-      CAC001_ip_dx_all <- CAC001_ip_dx
-      next
-    }
-    CAC001_ip_dx_all <- full_join(CAC001_ip_dx_all, CAC001_ip_dx)
-    rm(CAC001_ip_dx)
-  }
-  ### CAC001_ip_px.xlsx
-  for (i in 1:hub) {
-xl_file <- paste0("./data/internal/", qtr, "_", i, "_cac001_ip_px.xlsx")
-    CAC001_ip_px <- read_xlsx(xlsx_file, col_types = cols(
-      `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
-      `All Coded` = col_number(), `All Suggested` = col_number(),
-      `From CAC` = col_skip()
-    )) %>%
-      mutate(Hub = i, QTR = qtr, PatCls = "I", DxPx = "Px") %>%
-      replace(is.na(.), 0)
-    if (i == 1) {
-      CAC001_ip_px_all <- CAC001_ip_px
-      next
-    }
-    CAC001_ip_px_all <- full_join(CAC001_ip_px_all, CAC001_ip_px)
-    rm(CAC001_ip_px)
-  }
-  ### CAC001_op_dx.xlsx
-  for (i in 1:hub) {
-xl_file <- paste0("./data/internal/", qtr, "_", i, "_cac001_op_dx.xlsx")
-    CAC001_op_dx <- read_xlsx(xlsx_file, col_types = cols(
-      `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
-      `All Coded` = col_number(), `All Suggested` = col_number(),
-      `From CAC` = col_skip()
-    )) %>%
-      mutate(Hub = i, QTR = qtr, PatCls = "O", DxPx = "Dx") %>%
-      replace(is.na(.), 0)
-    if (i == 1) {
-      CAC001_op_dx_all <- CAC001_op_dx
-      next
-    }
-    CAC001_op_dx_all <- full_join(CAC001_op_dx_all, CAC001_op_dx)
-    rm(CAC001_op_dx)
-  }
-  ### CAC001_op_px.xlsx
-  for (i in 1:hub) {
-xl_file <- paste0("./data/internal/", qtr, "_", i, "_cac001_op_px.xlsx")
-    CAC001_op_px <- read_xlsx(xlsx_file, col_types = cols(
-      `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
-      `All Coded` = col_number(), `All Suggested` = col_number(),
-      `From CAC` = col_skip()
-    )) %>%
-      mutate(Hub = i, QTR = qtr, PatCls = "O", DxPx = "Px") %>%
-      replace(is.na(.), 0)
-    if (i == 1) {
-      CAC001_op_px_all <- CAC001_op_px
-      next
-    }
-    CAC001_op_px_all <- full_join(CAC001_op_px_all, CAC001_op_px)
-    rm(CAC001_op_px)
-  }
-  ### create CAC001_all
-  CAC001_all <- full_join(CAC001_ip_dx_all, CAC001_ip_px_all)
+  read_360_file("CAC001_ip_dx", 62)
+  CAC001_ip_dx_all <- CAC001_ip_dx_all %>% 
+    mutate(IpOp = "Ip", DxPx = "Dx")
+  
+  read_360_file("CAC001_ip_px", 62)
+  CAC001_ip_px_all <- CAC001_ip_px_all %>% 
+    mutate(IpOp = "Ip", DxPx = "Px")
+  
+  read_360_file("CAC001_op_dx", 62)
+  CAC001_op_dx_all <- CAC001_op_dx_all %>% 
+    mutate(IpOp = "Op", DxPx = "Dx")
+  
+  read_360_file("CAC001_op_px", 62)
+  CAC001_op_px_all <- CAC001_op_px_all %>% 
+    mutate(IpOp = "Op", DxPx = "Px")
+## create consolidated file with ip+op, dx+px
+  CAC001_all <- suppressMessages(full_join(CAC001_ip_dx_all, CAC001_ip_px_all))
   rm(CAC001_ip_dx_all, CAC001_ip_px_all)
-  CAC001_all <- full_join(CAC001_all, CAC001_op_dx_all)
+  CAC001_all <- suppressMessages(full_join(CAC001_all, CAC001_op_dx_all))
   rm(CAC001_op_dx_all)
-  CAC001_all <- full_join(CAC001_all, CAC001_op_px_all) %>%
+  CAC001_all <- suppressMessages(full_join(CAC001_all, CAC001_op_px_all)) %>%
+    rename(Coder = "Last Reviewer/Coder") %>% 
+    replace(is.na(.), 0)  %>% 
     mutate(
       Facility = str_replace(Facility, "---", "Total"),
       `% Precision` = (`% Precision` / 100), # converts to decimal e.g. 54.32 becomes 0.5432
       `% Recall` = (`% Recall` / 100)
     ) %>% # converts to decimal - doing "/100" here avoids having to do "*100" every other time a rate is calculated
-    separate(`Last Reviewer/Coder`, c("Coder", "Coderid"), sep = "[()]") %>%
+    sep_cdr() %>% 
     filter(`Coder` != "Grand Totals") %>%
     select(
-      Coder, Coderid, Facility, Hub, `Accepted`, `All Suggested`, `All Coded`,
-      `% Precision`, `% Recall`, QTR, PatCls, DxPx
+      Coder, coderid, Facility, Hub, `Accepted`, `All Suggested`, `All Coded`,
+      `% Precision`, `% Recall`, Qtr, IpOp, DxPx
     ) # Rearrange columns.  "From CAC" number by definition is the same as "Accepted"
   rm(CAC001_op_px_all)
-  write_excel_csv(CAC001_all, paste0("./data/cons/CAC001_all", qtr, "_.xlsx")) # this action writes a cons xlsx file with all hubs
-}
-
-fac_pnr <- CAC001_all %>%
-  filter(Facility != "Total") %>%
-  left_join(fac_list) %>%
-  group_by(Facility, PatCls, DxPx) %>%
-  mutate(
-    Accepted_fac = sum(Accepted),
-    All_Suggested_fac = sum(`All Suggested`),
-    `All_Coded_fac` = sum(`All Coded`),
-    `%_Precision_fac` = (`Accepted_fac` / `All_Suggested_fac`),
-    `%_Recall_fac` = (`Accepted_fac` / `All_Coded_fac`)
-  ) %>%
-  ungroup() %>%
-  group_by(Hub, PatCls, DxPx) %>%
-  mutate(
-    `All_Suggested_hub` = sum(`All Suggested`),
-    Accepted_hub = sum(`Accepted`),
-    `%_Precision_hub` = (`Accepted_hub` / `All_Suggested_hub`),
-    `All_Coded_hub` = sum(`All Coded`),
-    `%_Recall_hub` = (`Accepted_hub` / `All_Coded_hub`)
-  ) %>%
-  select(-`All_Suggested_hub`, -Accepted_hub, -All_Coded_hub) %>% # for anything above facility, we just want the rates.  Remove the `-` if you want to see the raw number
-  ungroup() %>%
-  filter(`All Suggested` > 100) %>% # exclude low outliers from coder rates
-  group_by(Facility, PatCls, DxPx) %>% # compares coders across each facility
-  mutate(
-    CdrPrcnMax_fac = max(`% Precision`),
-    CdrPrcnVar_fac = sd(`% Precision`),
-    CdrRclMax_fac = max(`% Recall`),
-    CdrRclVar_fac = sd(`% Recall`)
-  ) %>%
-  ungroup() %>%
-  group_by(Hub, PatCls, DxPx) %>% # compares coders across a single hub
-  mutate(
-    CdrPrcnMax_hub = max(`% Precision`),
-    CdrPrcnVar_hub = sd(`% Precision`),
-    CdrRclMax_hub = max(`% Recall`),
-    CdrRclVar_hub = sd(`% Recall`)
-  ) %>%
-  ungroup() %>%
-  group_by(vol_pctle_2018, PatCls, DxPx) %>% # compares coders across similarly sized facilitied in terms of annual IP discharges)
-  mutate(
-    CdrPrcnMax_size = max(`% Precision`), # above 75%percentile  / 25-70th / below 25th
-    CdrPrcnVar_size = sd(`% Precision`),
-    CdrRclMax_size = max(`% Recall`),
-    CdrRclVar_size = sd(`% Recall`)
-  ) %>%
-  ungroup() %>%
-  group_by(Group, PatCls, DxPx) %>% # compares coders across our company's designated hospital groups (i.e. regions)
-  mutate(
-    CdrPrcnMax_grp = max(`% Precision`), # above 75%percentile  / 25-70th / below 25th
-    CdrPrcnVar_grp = sd(`% Precision`),
-    CdrRclMax_grp = max(`% Recall`),
-    CdrRclVar_grp = sd(`% Recall`)
-  ) %>%
-  ungroup() %>%
-  group_by(PatCls, DxPx) %>%
-  mutate(
-    CdrPrcnMean_all = mean(`% Precision`), # compares coders across entire company (keeping IP vs OP and Dx vs Px)
-    CdrPrcnMax_all = max(`%_Precision_fac`),
-    CdrPrcnVar_all = sd(`%_Precision_fac`),
-    CdrRclMean_all = mean(`%_Recall_fac`),
-    CdrRclMax_all = max(`%_Recall_fac`),
-    CdrRclVar_all = sd(`%_Recall_fac`)
-  ) %>%
-  select(
-    -Coder, -Coderid, -`All Suggested`, -Accepted, -`% Precision`,
-    -`All Coded`, -`% Recall`, -name_internal
-  ) %>%
-  arrange(desc(`%_Precision_fac`)) %>% 
-  distinct()
-# ### create CAC001_all_cdr
-cdr_fac <- CAC001_all %>% # many of our coders code across facilities and across hubs.  For purposes of a 1:1 relationship between coder
-  filter(Facility != "Total") %>% # and facility, this routine looks at the facility with highest coded count and ties that facility to the coder
-  group_by(Coderid) %>%
-  arrange(desc(`All Coded`)) %>%
-  filter(row_number() == 1) %>%
-  ungroup() %>%
-  select(Coder, Coderid, Facility)
-# #
-cdr_pnr <- CAC001_all %>%
-  filter(Facility != "Total") %>%
-  group_by(Coderid, PatCls, DxPx) %>%
-  mutate(
-    Accepted_cdr = sum(Accepted),
-    All_Suggested_cdr = sum(`All Suggested`),
-    `All_Coded_cdr` = sum(`All Coded`),
-    `%_Precision_cdr` = (`Accepted_cdr` / `All_Suggested_cdr`),
-    `%_Recall_cdr` = (`Accepted_cdr` / `All_Coded_cdr`)
-  ) %>%
-  ungroup() %>%
-  select(-Facility, -Hub, -Accepted, -`All Suggested`, -`All Coded`, -`% Precision`, -`% Recall`) %>% # not sure about this
-  distinct() %>%
-  left_join(cdr_fac) %>%
-  rename(Lead_Faciity = Facility)
-{
-write_excel_csv(cdr_pnr, paste0("./data/cons/cdr_pnr", qtr, "_.xlsx")) # this action writes a cons xlsx file with all hubs
-write_excel_csv(fac_pnr, paste0("./data/cons/fac_pnr", qtr, "_.xlsx")) # this action writes a cons xlsx file with all hubs
-rm(CAC001_all)
-}
-## CAC003 auto-suggested codes precision and recall by code ===================
-## same concept as above.  We can grab Dx/Px from the column with the code, so we
-## just need to tag each row as IP or OP and the CDR or FAC.  We will consolidate
-## into one CDR table and one FAC table.
-## You may safely ignore warnings about number of columns not multiple of vector
-## we'll fix that later
-## You should have 12 columns.
-### CAC003_ip_cdr.xlsx
-{
-  for (i in 1:hub) {
-xl_file <- paste0("./data/internal/", qtr, "_", i, "_CAC003_ip_cdr.xlsx")
-    CAC003_ip_cdr <- read_xlsx(xlsx_file, col_types = cols(
-      `Last Reviewer/Coder` = col_character(), `Dx/Proc` = col_character(), `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
-      `All Coded` = col_number(), `All Suggested` = col_number(),
-      `From CAC` = col_skip()
-    )) %>%
-      mutate(Hub = i, QTR = qtr, PatCls = "I", cdrfac = "cdr") %>%
-      replace(is.na(.), 0)
-    if (i == 1) {
-      CAC003_ip_cdr_all <- CAC003_ip_cdr
-      next
-    }
-    CAC003_ip_cdr_all <- full_join(CAC003_ip_cdr_all, CAC003_ip_cdr)
-    rm(CAC003_ip_cdr)
-  }
-
-  ### CAC003_ip_fac.xlsx
-  for (i in 1:hub) {
-xl_file <- paste0("./data/internal/", qtr, "_", i, "_CAC003_ip_fac.xlsx")
-    CAC003_ip_fac <- read_xlsx(xlsx_file, col_types = cols(
-      `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
-      `All Coded` = col_number(), `All Suggested` = col_number(),
-      `From CAC` = col_skip()
-    )) %>%
-      mutate(Hub = i, QTR = qtr, PatCls = "I", cdrfac = "fac") %>%
-      replace(is.na(.), 0)
-    if (i == 1) {
-      CAC003_ip_fac_all <- CAC003_ip_fac
-      next
-    }
-    CAC003_ip_fac_all <- full_join(CAC003_ip_fac_all, CAC003_ip_fac)
-    rm(CAC003_ip_fac)
-  }
-
-  ### CAC003_op_cdr.xlsx
-  for (i in 1:hub) {
-xl_file <- paste0("./data/internal/", qtr, "_", i, "_CAC003_op_cdr.xlsx")
-    CAC003_op_cdr <- read_xlsx(xlsx_file, col_types = cols(
-      `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
-      `All Coded` = col_number(), `All Suggested` = col_number(),
-      `From CAC` = col_skip()
-    )) %>%
-      mutate(Hub = i, QTR = qtr, PatCls = "O", cdrfac = "cdr") %>%
-      replace(is.na(.), 0)
-    if (i == 1) {
-      CAC003_op_cdr_all <- CAC003_op_cdr
-      next
-    }
-    CAC003_op_cdr_all <- full_join(CAC003_op_cdr_all, CAC003_op_cdr)
-    rm(CAC003_op_cdr)
-  }
-
-  ### CAC003_op_fac.xlsx
-  for (i in 1:hub) {
-xl_file <- paste0("./data/internal/", qtr, "_", i, "_CAC003_op_fac.xlsx")
-    CAC003_op_fac <- read_xlsx(xlsx_file, col_types = cols(
-      `% Precision` = col_number(), `% Recall` = col_number(), Accepted = col_number(),
-      `All Coded` = col_number(), `All Suggested` = col_number(),
-      `From CAC` = col_skip()
-    )) %>%
-      mutate(Hub = i, QTR = qtr, PatCls = "O", cdrfac = "fac") %>%
-      replace(is.na(.), 0)
-    if (i == 1) {
-      CAC003_op_fac_all <- CAC003_op_fac
-      next
-    }
-    CAC003_op_fac_all <- full_join(CAC003_op_fac_all, CAC003_op_fac)
-    rm(CAC003_op_fac)
-  }
-}
-### Now combine into one fac file and one cdr file
-
-  fac_pnr_dxpx <- full_join(CAC003_ip_fac_all, CAC003_op_fac_all) %>%
-    filter(`All Suggested` > 0, `Dx/Proc` != "---") %>%
-    separate(`Dx/Proc`, c("DxPx", "Code"), sep = "[:]") %>%
-    separate(Code, c("Code"), sep = "[-]") %>%
-    filter(DxPx != "Admit Dx") %>%
-    mutate(DxPx = str_replace(DxPx, "ICD Px", "Px")) %>%
-    mutate(DxPx = str_replace(DxPx, "HCPCS Px", "CPT")) %>%
-    mutate(Code = str_replace(Code, " ", "")) %>% 
-    group_by(Facility, Code, DxPx, PatCls, QTR, Hub) %>%
-    summarize(
-      `All Suggested` = sum(`All Suggested`),
-      Accepted = sum(Accepted),
-      `All Coded` = sum(`All Coded`),
-      `% Precision` = Accepted / `All Suggested`,
-      `% Recall` = `Accepted` / `All Coded`
-    )
-
-  cdr_pnr_dxpx <- full_join(CAC003_ip_cdr_all, CAC003_op_cdr_all) %>%
-    filter(`All Suggested` > 9, `Dx/Proc` != "---") %>%
-    rename(Coder = `Last Reviewer/Coder`) %>%
-    separate(Coder, c("Coder", "coderid"), sep = "[()]") %>%
-    separate(`Dx/Proc`, c("DxPx", "Code"), sep = "[:]") %>%
-    filter(DxPx != "Admit Dx") %>%
-    mutate(DxPx = str_replace(DxPx, "ICD Px", "Px")) %>%
-    mutate(DxPx = str_replace(DxPx, "HCPCS Px", "CPT")) %>%
-    separate(Code, c("Code"), sep = "[-]") %>%
-    mutate(Code = str_replace(Code, " ", "")) %>% 
-    group_by(Coder, Code) %>%
+## from consolidatef file create facility pnr 
+  fac_pnr <- CAC001_all %>%
+    filter(Facility != "Total") %>%
+    left_join(fac_list) %>%
+    group_by(Facility, IpOp, DxPx) %>%
     mutate(
-      `All Suggested` = sum(`All Suggested`),
-      Accepted = sum(Accepted),
-      `All Coded` = sum(`All Coded`),
-      `% Precision` = Accepted / `All Suggested`,
-      `% Recall` = `Accepted` / `All Coded`
-    ) %>% 
+      Accepted_fac = sum(Accepted),
+      All_Suggested_fac = sum(`All Suggested`),
+      `All_Coded_fac` = sum(`All Coded`),
+      `%_Precision_fac` = (`Accepted_fac` / `All_Suggested_fac`),
+      `%_Recall_fac` = (`Accepted_fac` / `All_Coded_fac`)
+    ) %>%
+    ungroup() %>%
+    group_by(Hub, IpOp, DxPx) %>%
+    mutate(
+      `All_Suggested_hub` = sum(`All Suggested`),
+      Accepted_hub = sum(`Accepted`),
+      `%_Precision_hub` = (`Accepted_hub` / `All_Suggested_hub`),
+      `All_Coded_hub` = sum(`All Coded`),
+      `%_Recall_hub` = (`Accepted_hub` / `All_Coded_hub`)
+    ) %>%
+    select(-`All_Suggested_hub`, -Accepted_hub, -All_Coded_hub) %>% # for anything above facility, we just want the rates.  Remove the `-` if you want to see the raw number
+    ungroup() %>%
+    filter(`All Suggested` > 100) %>% # exclude low outliers from coder rates
+    group_by(Facility, IpOp, DxPx) %>% # compares coders across each facility
+    mutate(
+      CdrPrcnMax_fac = max(`% Precision`),
+      CdrPrcnVar_fac = sd(`% Precision`),
+      CdrRclMax_fac = max(`% Recall`),
+      CdrRclVar_fac = sd(`% Recall`)
+    ) %>%
+    ungroup() %>%
+    group_by(Hub, IpOp, DxPx) %>% # compares coders across a single hub
+    mutate(
+      CdrPrcnMax_hub = max(`% Precision`),
+      CdrPrcnVar_hub = sd(`% Precision`),
+      CdrRclMax_hub = max(`% Recall`),
+      CdrRclVar_hub = sd(`% Recall`)
+    ) %>%
+    ungroup() %>%
+    group_by(vol_pctle_2018, IpOp, DxPx) %>% # compares coders across similarly sized facilitied in terms of annual IP discharges)
+    mutate(
+      CdrPrcnMax_size = max(`% Precision`), # above 75%percentile  / 25-70th / below 25th
+      CdrPrcnVar_size = sd(`% Precision`),
+      CdrRclMax_size = max(`% Recall`),
+      CdrRclVar_size = sd(`% Recall`)
+    ) %>%
+    ungroup() %>%
+    group_by(Group, IpOp, DxPx) %>% # compares coders across our company's designated hospital groups (i.e. regions)
+    mutate(
+      CdrPrcnMax_grp = max(`% Precision`), # above 75%percentile  / 25-70th / below 25th
+      CdrPrcnVar_grp = sd(`% Precision`),
+      CdrRclMax_grp = max(`% Recall`),
+      CdrRclVar_grp = sd(`% Recall`)
+    ) %>%
+    ungroup() %>%
+    group_by(IpOp, DxPx) %>%
+    mutate(
+      CdrPrcnMean_all = mean(`% Precision`), # compares coders across entire company (keeping IP vs OP and Dx vs Px)
+      CdrPrcnMax_all = max(`%_Precision_fac`),
+      CdrPrcnVar_all = sd(`%_Precision_fac`),
+      CdrRclMean_all = mean(`%_Recall_fac`),
+      CdrRclMax_all = max(`%_Recall_fac`),
+      CdrRclVar_all = sd(`%_Recall_fac`)
+    ) %>%
+    select(
+      -Coder, -coderid, -`All Suggested`, -Accepted, -`% Precision`,
+      -`All Coded`, -`% Recall`, -name_internal
+    ) %>%
+    arrange(desc(`%_Precision_fac`)) %>% 
+    distinct()
+## assign "lead facility" for coders who code at multiple 
+  cdr_fac <- CAC001_all %>% # where a 1:1 relationship is needed
+    filter(Facility != "Total") %>% # 
+    group_by(coderid) %>%
+    mutate(cde_prop = (`All Coded`/sum(`All Coded`))) %>% 
+    arrange(desc(cde_prop)) %>%
+    filter(row_number() == 1) %>%
+    ungroup() %>%
+    select(Coder, coderid, Facility, cde_prop) %>% join_fac() %>% mutate(Qtr=qtr)
+ ## coder pnr 
+  cdr_pnr <- CAC001_all %>%
+    filter(Facility != "Total") %>%
+    group_by(coderid, IpOp, DxPx) %>%
+    mutate(
+      Accepted_cdr = sum(Accepted),
+      All_Suggested_cdr = sum(`All Suggested`),
+      `All_Coded_cdr` = sum(`All Coded`),
+      `%_Precision_cdr` = (`Accepted_cdr` / `All_Suggested_cdr`),
+      `%_Recall_cdr` = (`Accepted_cdr` / `All_Coded_cdr`)
+    ) %>%
+    #ungroup() %>%
+    select(-Facility, -Hub, -Accepted, -`All Suggested`, -`All Coded`, -`% Precision`, -`% Recall`) %>% # not sure about this
+    join_cdr_fac() %>%
+    rename(Lead_Faciity = Facility) %>% 
+    distinct(Coder, coderid, IpOp, DxPx, .keep_all = TRUE)
+  ## Save files to cons folder 
+  write_cons_file(cdr_pnr)
+  write_cons_file(cdr_fac)
+  write_cons_file(fac_pnr)
+  rm(cdr_pnr, fac_pnr, CAC001_all)
+}
+{# 09d Physician query listing ================================================
+read_360_file("CDI09d") 
+CDI09d_all <- CDI09d_all %>% 
+    filter(!is.na(`Visit ID`),`Provider Response` != "Withdrawn/Not Applicable") %>% 
+    rename(Coder = `Query Author__1`) %>%  
+  sep_cdr() %>% 
+    separate(`Queried Provider`, c("Queried Provider", "QueryMDid"), sep = "[()]", extra="drop") %>% 
+    separate(`Responding Provider`, c("Responding Provider", "RespMDid"), sep = "[()]", extra="drop") %>% 
+    select( -`Query Author`, -`Total Queries`, -`Facility`, -`Patient Name`, -`Admit Date`, -Gender,-MRN, -`Total Visits`) %>% 
+    select(Coder, coderid, everything())  %>% 
+    rename(Facility=`Facility__1`) %>% join_fac()
+# high level stats by coder and facility
+###  
+##WHAT OTHER QUESTIONS DOES THIS REPORT GENERATE?
+###
+# coder level
+cdr_qry <- CDI09d_all %>%
+  group_by(Coder) %>%
+  summarize(qry_n_cdr = n()) %>% 
+  ungroup() %>% 
+  mutate(qry_prptn_cdr = qry_n_cdr/sum(qry_n_cdr), qry_dstn_mean_cdr=(qry_n_cdr-mean(qry_n_cdr)), Qtr=qtr) %>% 
+  arrange(desc(qry_dstn_mean_cdr)) 
+
+write_cons_file(cdr_qry)
+rm(cdr_qry)
+# facility level
+fac_qry <-CDI09d_all %>%
+  group_by(Facility, Fac, Group) %>%
+  summarize(qry_n_fac = n()) %>% 
+  ungroup() %>% 
+  mutate(qry_prptn_fac = qry_n_fac/sum(qry_n_fac), qry_dstn_mean_fac=qry_n_fac -mean(qry_n_fac), Qtr=qtr) %>% 
+  arrange(desc(qry_dstn_mean_fac))
+write_cons_file(fac_qry)
+rm(fac_qry)
+rm(CDI09d_all)
+}
+{# CAC003 auto-suggested codes precision and recall by code ===================
+read_360_file("CAC003_ip_cdr", 9)
+CAC003_ip_cdr_all <- CAC003_ip_cdr_all %>% 
+  filter(`Dx/Proc` != "---", `All Suggested` > 24) %>% 
+  replace(is.na(.), 0)  %>% 
+  mutate(IpOp = "Ip") %>% sep_dxpx() %>% sep_lrcdr()
+
+read_360_file("CAC003_op_cdr", 9)
+CAC003_op_cdr_all <- CAC003_op_cdr_all %>% 
+  filter(`Dx/Proc` != "---", `All Suggested` > 24) %>% replace(is.na(.), 0)  %>% 
+  mutate(IpOp = "Op") %>% sep_dxpx() %>% sep_lrcdr()
+
+read_360_file("CAC003_ip_fac", 9)
+CAC003_ip_fac_all <- CAC003_ip_fac_all %>%
+  filter(`Dx/Proc` != "---", `All Suggested` > 24) %>% replace(is.na(.), 0)  %>% 
+  mutate(IpOp = "Ip") %>% sep_dxpx()
+
+read_360_file("CAC003_op_fac", 9)
+CAC003_op_fac_all <- CAC003_op_fac_all %>% 
+  filter(`Dx/Proc` != "---", `All Suggested` > 24) %>% replace(is.na(.), 0)  %>% 
+  mutate(IpOp = "Op") %>% sep_dxpx()
+
+  fac_pnr_dxpx <- suppressMessages(full_join(CAC003_ip_fac_all, CAC003_op_fac_all)) %>%
+    group_by(Facility, Code, DxPx, IpOp, Qtr, Hub)  %>% 
+    sum_pnr()
+
+  cdr_pnr_dxpx <- suppressMessages(full_join(CAC003_ip_cdr_all, CAC003_op_cdr_all)) %>%
+    group_by(Coder, Code) %>%
+    sum_pnr() %>% 
     group_by(Hub) %>% 
     mutate(pcn_rnk_hub = min_rank(`% Precision`))
- 
+#code level
   cde_pnr_dxpx <- fac_pnr_dxpx %>%
-    group_by(Code, DxPx, PatCls, QTR, Hub) %>%
-    summarize(
-      `All Suggested` = sum(`All Suggested`),
-      Accepted = sum(Accepted),
-      `All Coded` = sum(`All Coded`),
-      `% Precision` = Accepted / `All Suggested`,
-      `% Recall` = `Accepted` / `All Coded`
-    ) %>%
-    filter(`All Suggested` > 24) %>%
-    arrange(desc(`All Suggested`)) %>% 
-    left_join(ccmcc)
+    group_by(Code, DxPx, IpOp, Qtr, Hub) %>%
+    sum_pnr() %>%
+    arrange(desc(`All Suggested`)) 
   
   cde_pnr_ccmcc <- cde_pnr_dxpx %>% 
-    filter(is_ccmcc == "TRUE") %>% 
+    left_join(icd10_ccmcc) %>% 
+    filter(is_ccmcc == "TRUE", IpOp=="Ip") %>% 
     select(-is_ccmcc)
-
-
+  
 rm(CAC003_op_fac_all, CAC003_ip_fac_all)
 rm(CAC003_op_cdr_all, CAC003_ip_cdr_all)
 
+write_cons_file(fac_pnr_dxpx)
+write_cons_file(cdr_pnr_dxpx)
+write_cons_file(cde_pnr_dxpx)
+write_cons_file(cde_pnr_ccmcc)
+}
+{# CAC007 All Codes Entry Method Summary ======================================
+read_CAC007("CAC007_ip_dx_cdr")
+CAC007_ip_dx_cdr_all <- CAC007_ip_dx_cdr_all %>% 
+  mutate(IpOp = "Ip", PxDx = "Dx") %>% 
+rename(Coder = "Entry.Method") %>% 
+sep_cdr() %>% join_cdr_fac()
 
-## CAC007 All Codes Entry Method Summary ======================================
-## Same concepts as above. OK to ignore warnings about missing column names.
-## Number of columns will actually vary as 360 does not report on columns that had
-## no data.
-### * CAC007 Coder Level ##########
-### CAC007_ip_dx_cdr.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_ip_dx_cdr.xlsx")
-  CAC007_ip_dx_cdr <- read_xlsx(xlsx_file) %>%
-    mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Dx", cdrfac = "cdr") %>%
-    replace(is.na(.), 0)
-  CAC007_ip_dx_cdr <- CAC007_ip_dx_cdr[grep("^X", colnames(CAC007_ip_dx_cdr), invert = TRUE)]
-  if (i == 1) {
-    CAC007_ip_dx_cdr_all <- CAC007_ip_dx_cdr
-    next
-  }
-  CAC007_ip_dx_cdr_all <- full_join(CAC007_ip_dx_cdr_all, CAC007_ip_dx_cdr)
-  rm(CAC007_ip_dx_cdr)
-}
-### CAC007_op_dx_cdr.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_op_dx_cdr.xlsx")
-  CAC007_op_dx_cdr <- read_xlsx(xlsx_file) %>%
-    mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Dx", cdrfac = "cdr") %>%
-    replace(is.na(.), 0)
-  CAC007_op_dx_cdr <- CAC007_op_dx_cdr[grep("^X", colnames(CAC007_op_dx_cdr), invert = TRUE)]
-  if (i == 1) {
-    CAC007_op_dx_cdr_all <- CAC007_op_dx_cdr
-    next
-  }
-  CAC007_op_dx_cdr_all <- full_join(CAC007_op_dx_cdr_all, CAC007_op_dx_cdr)
-  rm(CAC007_op_dx_cdr)
-}
+read_CAC007("CAC007_op_dx_cdr")
+CAC007_op_dx_cdr_all <- CAC007_op_dx_cdr_all %>% 
+  mutate(IpOp = "Op", PxDx = "Dx") %>% 
+  rename(Coder = "Entry.Method") %>% 
+  sep_cdr() %>%   join_cdr_fac()
 
-### CAC007_ip_px_cdr.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_ip_px_cdr.xlsx")
-  CAC007_ip_px_cdr <- read_xlsx(xlsx_file) %>%
-    mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Px", cdrfac = "cdr") %>%
-    replace(is.na(.), 0)
-  CAC007_ip_px_cdr <- CAC007_ip_px_cdr[grep("^X", colnames(CAC007_ip_px_cdr), invert = TRUE)]
-  if (i == 1) {
-    CAC007_ip_px_cdr_all <- CAC007_ip_px_cdr
-    next
-  }
-  CAC007_ip_px_cdr_all <- full_join(CAC007_ip_px_cdr_all, CAC007_ip_px_cdr)
-  rm(CAC007_ip_px_cdr)
-}
-### CAC007_op_px_cdr.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_op_px_cdr.xlsx")
-  CAC007_op_px_cdr <- read_xlsx(xlsx_file) %>%
-    mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Px", cdrfac = "cdr") %>%
-    replace(is.na(.), 0)
-  CAC007_op_px_cdr <- CAC007_op_px_cdr[grep("^X", colnames(CAC007_op_px_cdr), invert = TRUE)]
-  if (i == 1) {
-    CAC007_op_px_cdr_all <- CAC007_op_px_cdr
-    next
-  }
-  CAC007_op_px_cdr_all <- full_join(CAC007_op_px_cdr_all, CAC007_op_px_cdr) %>%
-    replace(is.na(.), 0)
-  rm(CAC007_op_px_cdr)
-}
+read_CAC007("CAC007_ip_px_cdr")
+CAC007_ip_px_cdr_all <- CAC007_ip_px_cdr_all %>% 
+  mutate(IpOp = "Ip", PxDx = "Px") %>% 
+  rename(Coder = "Entry.Method") %>% 
+  sep_cdr() %>% join_cdr_fac()
+
+read_CAC007("CAC007_op_px_cdr")
+CAC007_op_px_cdr_all <- CAC007_op_px_cdr_all %>% 
+  mutate(IpOp = "Op", PxDx = "Px") %>% 
+  rename(Coder = "Entry.Method") %>% 
+  sep_cdr() %>% join_cdr_fac()
+
 ### Join all
-{
-  cdr_entry <- full_join(CAC007_ip_dx_cdr_all, CAC007_op_dx_cdr_all) %>%
+  cdr_entry <- suppressMessages(full_join(CAC007_ip_dx_cdr_all, CAC007_op_dx_cdr_all)) %>%
     replace(is.na(.), 0)
-  rm(CAC007_ip_dx_cdr_all, CAC007_op_dx_cdr_all)
-  cdr_entry <- full_join(cdr_entry, CAC007_ip_px_cdr_all) %>%
+  cdr_entry <- suppressMessages(full_join(cdr_entry, CAC007_ip_px_cdr_all)) %>%
     replace(is.na(.), 0)
-  rm(CAC007_ip_px_cdr_all)
-  cdr_entry <- full_join(cdr_entry, CAC007_op_px_cdr_all) %>%
-    replace(is.na(.), 0)
-  rm(CAC007_op_px_cdr_all)
-}
-### * CAC007 Facility Level ###########
-### CAC007_ip_dx_fac.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_ip_dx_fac.xlsx")
-  CAC007_ip_dx_fac <- read_xlsx(xlsx_file) %>%
-    mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Dx", cdrfac = "fac") %>%
-    replace(is.na(.), 0)
-  CAC007_ip_dx_fac <- CAC007_ip_dx_fac[grep("^X", colnames(CAC007_ip_dx_fac), invert = TRUE)]
-  if (i == 1) {
-    CAC007_ip_dx_fac_all <- CAC007_ip_dx_fac
-    next
-  }
-  CAC007_ip_dx_fac_all <- full_join(CAC007_ip_dx_fac_all, CAC007_ip_dx_fac)
-  rm(CAC007_ip_dx_fac)
-}
+  cdr_entry <- suppressMessages(full_join(cdr_entry, CAC007_op_px_cdr_all)) %>%
+    replace(is.na(.), 0) %>% 
+  group_by(Coder, IpOp, PxDx) %>%
+  mutate(TotCodes = sum(`CAC`,`CDI`,`MAN`)) %>%
+  mutate(`CAC%`= (CAC/TotCodes),
+         `CDI%`=(CDI/TotCodes),
+         `MAN%`=(MAN/TotCodes),
+#         `OTH%`=round((OTH/(TotCodes+OTH))*100,2),
+         `MANAuto` = (MAN.CRS.S+MAN.Drct.Code.S),
+         `MANAuto%` = (MANAuto/MAN),
+         `CAC+CDI%`=`CAC%`+`CDI%`) %>% 
+  select(Coder, coderid, `CAC%`, `CDI%`, `MAN%`, TotCodes, MAN.CRS.S, MAN.Drct.Code.S, MAN, `MANAuto%`, `CAC+CDI%`, Qtr, IpOp, PxDx,Hub)
+rm(CAC007_op_px_cdr_all)
+rm(CAC007_ip_dx_cdr_all, CAC007_op_dx_cdr_all)
+rm(CAC007_ip_px_cdr_all)
+write_cons_file(cdr_entry)
+### * CAC007 Facility Level
+read_CAC007("CAC007_ip_dx_fac")
+CAC007_ip_dx_fac_all <- CAC007_ip_dx_fac_all %>% 
+  mutate(IpOp = "Ip", PxDx = "Dx") %>% 
+  rename(Facility = "Entry.Method") %>%  
+  join_fac()
 ### CAC007_op_dx_fac.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_op_dx_fac.xlsx")
-  CAC007_op_dx_fac <- read_xlsx(xlsx_file) %>%
-    mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Dx", cdrfac = "fac") %>%
-    replace(is.na(.), 0)
-  CAC007_op_dx_fac <- CAC007_op_dx_fac[grep("^X", colnames(CAC007_op_dx_fac), invert = TRUE)]
-  if (i == 1) {
-    CAC007_op_dx_fac_all <- CAC007_op_dx_fac
-    next
-  }
-  CAC007_op_dx_fac_all <- full_join(CAC007_op_dx_fac_all, CAC007_op_dx_fac)
-  rm(CAC007_op_dx_fac)
-}
-
+read_CAC007("CAC007_op_dx_fac")
+CAC007_op_dx_fac_all <- CAC007_op_dx_fac_all %>% 
+  mutate(IpOp = "Op", PxDx = "Dx") %>% 
+  rename(Facility = "Entry.Method") %>% 
+  join_fac()
 ### CAC007_ip_px_fac.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_ip_px_fac.xlsx")
-  CAC007_ip_px_fac <- read_xlsx(xlsx_file) %>%
-    mutate(Hub = i, QTR = qtr, PatCls = "I", PxDx = "Px", cdrfac = "fac") %>%
-    replace(is.na(.), 0)
-  CAC007_ip_px_fac <- CAC007_ip_px_fac[grep("^X", colnames(CAC007_ip_px_fac), invert = TRUE)]
-  if (i == 1) {
-    CAC007_ip_px_fac_all <- CAC007_ip_px_fac
-    next
-  }
-  CAC007_ip_px_fac_all <- full_join(CAC007_ip_px_fac_all, CAC007_ip_px_fac)
-  rm(CAC007_ip_px_fac)
-}
+read_CAC007("CAC007_ip_px_fac")
+CAC007_ip_px_fac_all <- CAC007_ip_px_fac_all %>% 
+  mutate(IpOp = "Ip", PxDx = "Px") %>% 
+  rename(Facility = "Entry.Method") %>% 
+  join_fac()
 ### CAC007_op_px_fac.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC007_op_px_fac.xlsx")
-  CAC007_op_px_fac <- read_xlsx(xlsx_file) %>%
-    mutate(Hub = i, QTR = qtr, PatCls = "O", PxDx = "Px", cdrfac = "fac") %>%
-    replace(is.na(.), 0)
-  CAC007_op_px_fac <- CAC007_op_px_fac[grep("^X", colnames(CAC007_op_px_fac), invert = TRUE)]
-  if (i == 1) {
-    CAC007_op_px_fac_all <- CAC007_op_px_fac
-    next
-  }
-  CAC007_op_px_fac_all <- full_join(CAC007_op_px_fac_all, CAC007_op_px_fac)
-  rm(CAC007_op_px_fac)
-}
+read_CAC007("CAC007_op_px_fac")
+CAC007_op_px_fac_all <- CAC007_op_px_fac_all %>% 
+  mutate(IpOp = "Op", PxDx = "Px") %>% 
+  rename(Facility = "Entry.Method") %>% 
+  join_fac()
 ### Join all
-{
-  fac_entry <- full_join(CAC007_ip_dx_fac_all, CAC007_op_dx_fac_all) %>%
-    replace(is.na(.), 0)
-  rm(CAC007_ip_dx_fac_all, CAC007_op_dx_fac_all)
-  fac_entry <- full_join(fac_entry, CAC007_ip_px_fac_all) %>%
-    replace(is.na(.), 0)
-  rm(CAC007_ip_px_fac_all)
-  fac_entry <- full_join(fac_entry, CAC007_op_px_fac_all) %>%
-    replace(is.na(.), 0)
-  rm(CAC007_op_px_fac_all)
+fac_entry <- suppressMessages(full_join(CAC007_ip_dx_fac_all, CAC007_op_dx_fac_all)) %>%
+  replace(is.na(.), 0)
+fac_entry <- suppressMessages(full_join(fac_entry, CAC007_ip_px_fac_all)) %>%
+  replace(is.na(.), 0)
+fac_entry <- suppressMessages(full_join(fac_entry, CAC007_op_px_fac_all)) %>%
+  replace(is.na(.), 0) %>% 
+  group_by(Facility, IpOp, PxDx) %>%
+  mutate(TotCodes = sum(`CAC`,`CDI`,`MAN`)) %>%
+  mutate(`CAC%`= (CAC/TotCodes),
+         `CDI%`=(CDI/TotCodes),
+         `MAN%`=(MAN/TotCodes),
+         #         `OTH%`=round((OTH/(TotCodes+OTH))*100,2),
+         `MANAuto` = (MAN.CRS.S+MAN.Drct.Code.S),
+         `MANAuto%` = (MANAuto/MAN),
+         `CAC+CDI%`=`CAC%`+`CDI%`) %>% 
+  select(Facility, `CAC%`, `CDI%`, `MAN%`, TotCodes, MAN.CRS.S, MAN.Drct.Code.S, MAN, `MANAuto%`, `CAC+CDI%`, Qtr, IpOp, PxDx)
+rm(CAC007_op_px_fac_all)
+rm(CAC007_ip_dx_fac_all, CAC007_op_dx_fac_all)
+rm(CAC007_ip_px_fac_all)
+write_cons_file(fac_entry)
 }
-## CAC008 Auto-suggested codes listing ==============
-# If anything is slow, it's this section.  If you decide you don't want it,
-# just select the code down to where IP004 starts and hit ctrl+shift+c - this
-# will `comment` it and stop it from running.
-# also if you’re looking for raw speed, try data.table::fread()
-# as above ignore warnings about number of columns not multiple of vector
-# we'll fix that later
-# CAC008.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_CAC008.xlsx")
-  CAC008_hub <- read_xlsx(xlsx_file, col_types = cols(`Visit ID` = col_character(), `Total Codes` = col_skip(),
-                                                    MRN = col_skip(), `Patient Name`=col_skip(), `Entry Method`=col_skip(), `Admit Date`=col_skip())) %>%
-    fill(`Dx/Proc`) %>% 
-    filter(!is.na(`Visit ID`)) %>% 
-    separate(Coder, c("Coder", "coderid"), sep = "[()]") %>%
-    separate(`Dx/Proc`, c("DxPx", "Code"), sep = "[:]") %>%
-    filter(DxPx != "Admit Dx") %>%
-    mutate(DxPx = str_replace(DxPx, "ICD Px", "Px")) %>%
-    mutate(DxPx = str_replace(DxPx, "HCPCS Px", "CPT")) %>%
-    separate(Code, c("Code"), sep = "[-]") %>%
-    mutate(Code = str_replace(Code, " ", ""))  %>% 
-    mutate(Hub = i, QTR = qtr) 
-  if (i == 1) {
-    cdr_acct_rej <- CAC008_hub
-    next
-  }
-  cdr_acct_rej <- full_join(cdr_acct_rej, CAC008_hub)
-  rm(CAC008_hub)
-}
-cdr_acct_rej <- cdr_acct_rej %>% 
-  group_by(`Visit ID`) %>% 
-  mutate(tot_cds_acct=n())
-## IP004 Primary and Secondary DRG Listing ==============================
+{# IP003 HAC DRGs ==========
+read_360_file("IP003_mcr", 11)
+IP003_mcr_all <- IP003_mcr_all %>% 
+  filter(`DRG HAC Status` != "---") %>% 
+  sep_cdr() %>% 
+  mutate(IpOp = "Ip", `Primary Grouper` = "MSDRG") %>% 
+  join_cdr_fac() %>% 
+  rename(Lead_Facility = "Facility")
+
+cdr_hac <- IP003_mcr_all %>% 
+  group_by(Coder, coderid, Qtr, IpOp, `Primary Grouper`, `DRG HAC Status`, Lead_Facility, Fac, Group) %>% 
+  mutate_at(vars(matches("Case")), as.numeric) %>% 
+  mutate_at(vars(matches("Reim")), as.numeric) %>% 
+  summarise(tot_visits = sum(`Total Visits`),  #consolidates multiple hubs (need to keep DRG HAC Status grouping)
+         pre_case_mix = weighted.mean(`Case Mix`, (`Total Visits`)),
+         pre_tot_reimb = sum(`Exp Reim`),
+         pre_avg_reimb = weighted.mean(`Avg Exp Reim`, `Total Visits`),
+         post_case_mix = weighted.mean(`Case Mix__1`, `Total Visits`),
+         post_tot_reimb = sum(`Exp Reim__1`),
+         post_avg_reimb = weighted.mean(`Avg Exp Reim__1`, `Total Visits`)) %>% 
+  group_by(Coder, coderid, Qtr, IpOp, `Primary Grouper`) %>%  #consolidates overall pre/post, can drop DRG HAC grouping
+         mutate(pre_case_mix = weighted.mean(pre_case_mix, (tot_visits)),
+         pre_tot_reimb = sum(pre_tot_reimb),
+         pre_avg_reimb = weighted.mean(pre_avg_reimb, tot_visits),
+         post_case_mix = weighted.mean(post_case_mix, tot_visits),
+         post_tot_reimb = sum(post_tot_reimb),
+         post_avg_reimb = weighted.mean(post_avg_reimb, tot_visits)) %>% 
+  ungroup() %>% 
+    spread(`DRG HAC Status`, `tot_visits`) %>% 
+  replace(is.na(.), 0) %>% 
+  rename(no_hac=`0-Not applicable, hospital is exempt or HAC criteria are not met`,
+         hac_no_drg = `1-One or more HAC criteria met and Final DRG does not change`,
+         hac_drg = `2-One or more HAC criteria met and Final DRG changes`) %>% 
+  mutate(hac_rate_1000 = ((hac_no_drg + hac_drg)/1000)/((no_hac+hac_no_drg+hac_drg)/1000), hac_drg_rate_1000 = (hac_drg/1000)/((no_hac+hac_no_drg+hac_drg)/100))
+write_cons_file(cdr_hac)
+rm(IP003_mcr_all)
+} ## NEEDS MORE WORK
+{# IP004 Primary and Secondary DRG Listing ==============================
 # See important note in 360 file prep document about secondary DRGs
-# Ignore warnings.  21 columns
 # IP004.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_IP004.xlsx")
-  IP004_hub <- read_xlsx(xlsx_file, col_types = cols( MRN=col_skip(), `Total Visits`=col_skip(), Name=col_skip(), `Admit Date`=col_skip(), 
-    `Visit ID` = col_character(),
-    `SOI/ROM` = col_character(), `SOI/ROM_1` = col_character()
-  )) %>%
-    fill(Coder, `Financial Class`) %>% 
-    filter(!is.na(`Visit ID`)) %>% 
-    separate(Coder, c("Coder", "coderid"), sep = "[()]") %>%
-    separate(`Prin Dx`, c("Dx"), sep = "[-]") %>%
-    separate(`Prin Proc`, c("Px"), sep = "[-]") %>%
-    separate(`Pt Type`, c("pclass", "ptype"), sep="[/]") %>% 
-    mutate(Hub = i, QTR = qtr,Fac=str_sub(`Visit ID`, 1, 3)) 
-  if (i == 1) {
-    cdr_acct <- IP004_hub
-    next
-  }
-  cdr_acct <- full_join(cdr_acct, IP004_hub) 
-  rm(IP004_hub)
-}
+read_360_file("IP004", 12)
+IP004_all <- IP004_all %>% 
+  fill(Coder, `Financial Class`) %>% 
+  filter(!is.na(`Visit ID`)) %>% 
+  sep_cdr() %>% 
+  separate(`Prin Dx`, c("Dx"), sep = "[-]", extra="drop") %>%
+  separate(`Prin Proc`, c("Px"), sep = "[-]", extra="drop") %>%
+  separate(`Pt Type`, c("IpOp", "ptype"), sep="[/]", extra="drop") %>% 
+  mutate(`IpOp` = str_replace(IpOp, "I", "Ip")) %>% 
+  mutate(`IpOp` = str_replace(IpOp, "O", "Op")) %>% 
+  mutate(Dx=str_replace(Dx, " ",""), Px=str_replace(Px, " ",""))
+  
+IP004_pbar <- IP004_all %>% filter(Hub %in% c(1:5)) %>% mutate(Fac=str_sub(`Visit ID`, 1, 3)) %>% select(`Visit ID`, Fac, coderid)
+IP004_satx <- IP004_all %>% filter(Hub %in% c(6)) %>% mutate(Fac=str_sub(`ptype`, 1, 1)) %>% 
+  mutate(Fac= str_replace(Fac, "A", "BMA")) %>% select(`Visit ID`, Fac, coderid)
+  
 
-
-Pt <- cdr_acct %>% 
-  select (Coder, coderid,`Visit ID`, `Disch Date`, LOS, `pclass`, ptype, Fac, `Disch Disposition`, `Dx`, `Px`)
-DRG <- cdr_acct %>%
+mutate_if(IP004_all,'Hub'=6, Fac=ptype)
+# needs some tidying to make variables in constant location
+# Data may fail if you don't collect secondary DRG on every patient
+Pt <- IP004_all %>% 
+  select (Coder, coderid,`Visit ID`, `Disch Date`, LOS, IpOp, ptype, Fac, `Disch Disposition`, `Dx`, `Px`)
+DRG <- IP004_all %>%
   select(`Visit ID`, DRG, Wgt, `SOI/ROM`, ALOS, GLOS) %>%
   separate(DRG, c("DRG","Grouper"),sep="[()]") %>%
-  separate(DRG, c("DRG"), sep="[-]")
-DRG1 <-cdr_acct %>%
-  select(`Visit ID`, DRG_1, Wgt_1, `SOI/ROM_1`, ALOS_1, GLOS_1) %>%
-  separate(DRG_1, c("DRG","Grouper"),sep="[()]") %>%
+  separate(DRG, c("DRG"), sep="[-]") %>% 
+  #change to number to match DRG1
+   mutate_at(vars(matches("Wgt")), as.numeric) 
+DRG1 <-IP004_all %>%
+  select(`Visit ID`, DRG__1, Wgt__1, `SOI/ROM__1`, ALOS__1, GLOS__1) %>%
+  separate(DRG__1, c("DRG","Grouper"),sep="[()]") %>%
   separate(DRG, c("DRG"), sep="[-]") %>%
-  rename(Wgt=Wgt_1, `SOI/ROM`= "SOI/ROM_1", ALOS=ALOS_1, GLOS=GLOS_1)
+  rename(Wgt=Wgt__1, `SOI/ROM`= "SOI/ROM__1", ALOS=ALOS__1, GLOS=GLOS__1)
 # Bring Primary DRGs and Secondary DRGs into one table
 DRG <- full_join(DRG, DRG1)
 rm(DRG1)
 #Now designate MS vs APR DRG Info - this is the equivalent of find and replace
 #As long as the various state APR systems have `APR` in the desciption they will all be classified to APRDRG
-DRG$Grouper[grepl("APR", DRG$Grouper, ignore.case=FALSE)] <- "APRDRG"
-DRG$Grouper[grepl("MS", DRG$Grouper, ignore.case=FALSE)] <- "MSDRG"
-DRG$Grouper[grepl("TRI", DRG$Grouper, ignore.case=TRUE)] <- "MSDRG"
+  DRG$Grouper[grepl("APR", DRG$Grouper, ignore.case=FALSE)] <- "APRDRG"
+  DRG$Grouper[grepl("Medicare", DRG$Grouper, ignore.case=FALSE)] <- "MSDRG"
+  DRG$Grouper[grepl("MS", DRG$Grouper, ignore.case=FALSE)] <- "MSDRG"
+  DRG$Grouper[grepl("TRI", DRG$Grouper, ignore.case=TRUE)] <- "MSDRG"
+  
 # if you have a grouper not listed you may need to add it
 # The first part in green is the string you want to search for
 # the last part is where you would classify it to APRDRG or MSDRG
@@ -685,58 +485,47 @@ noms <-anti_join(MS, DRG)
 APRMS <- full_join(APR, MS)
 Missinggrouper <- full_join(noapr, noms) #hope this is 0 but including just in case we get another grouper we need to map to APR or MS
 #if so just duplicate the DRG$Grouper[grepl("...")], where ... is some distinct identifier
-cdr_acct_1 <- full_join(APRMS, Pt)
-rm(noapr, noms,DRG, Pt, APRMS, APR, MS)
+cdr_drg <- full_join(APRMS, Pt)
+rm(noapr,DRG, Pt, APRMS, APR, MS)
+write_cons_file(cdr_drg)
+}
+{ #IPPlus001.xlsx ========================
+read_360_file("IPPlus001", 11)
+IPPlus001_all <- IPPlus001_all %>% 
+  filter(Coder != "---") %>% sep_cdr() 
+IPPlus001_all$Grouper[grepl("APR", IPPlus001_all$Grouper, ignore.case=FALSE)] <- "APRDRG"
+IPPlus001_all$Grouper[grepl("Medicare", IPPlus001_all$Grouper, ignore.case=FALSE)] <- "MSDRG"
+IPPlus001_all$Grouper[grepl("MS", IPPlus001_all$Grouper, ignore.case=FALSE)] <- "MSDRG"
+IPPlus001_all$Grouper[grepl("TRI", IPPlus001_all$Grouper, ignore.case=TRUE)] <- "MSDRG"
+  IPPlus001_all <- IPPlus001_all %>% 
+  mutate_at(vars(matches("Case")), as.numeric) %>% 
+    mutate_at(vars(matches("Total")), as.numeric) %>% 
+    mutate_at(vars(matches("LOS")), as.numeric) 
+cdr_cmi_fc <- IPPlus001_all
+cdr_cmi <- IPPlus001_all %>% 
+  filter(`Financial Class` == "---") %>% 
+  select(-`Financial Class`)
+write_cons_file(cdr_cmi_fc)
+write_cons_file(cdr_cmi)
+}
+{# Prod16 =====================
+read_360_file("Prod016_ip",9)
+read_360_file("Prod016_op",9)
+Prod016_ip_all <- Prod016_ip_all %>% 
+  mutate(IpOp = "Ip") %>% 
+  select(- `Hold Transactions`, -`Coding Transactions`) %>% 
+  sep_cdr()
+Prod016_op_all <- Prod016_op_all %>% 
+  mutate(IpOp = "Op") %>% 
+  select(- `Hold Transactions`, -`Coding Transactions`) %>% 
+  sep_cdr()
+cdr_prod <- full_join(Prod016_op_all, Prod016_ip_all)
+write_cons_file(cdr_prod)
+rm(Prod016_op_all, Prod016_ip_all)
+}
+########################################################
 
-write_excel_csv(pt_cdr_drg, file = paste0("./360allhub/pt_cdr_drg", qtr,"_",hub,".xlsx"))
-## Prod016 #######################
-# Prod016_ip.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_Prod016_ip.xlsx")
-  Prod016_ip <- read_xlsx(xlsx_file) %>%
-    mutate(Hub = i, QTR = qtr, PatCls = "I") %>%
-    replace(is.na(.), 0)
-  if (i == 1) {
-    Prod016_ip_all <- Prod016_ip
-    next
-  }
-  Prod016_ip_all <- full_join(Prod016_ip_all, Prod016_ip)
-  rm(Prod016_ip)
-}
-# Prod016_op.xlsx
-for (i in 1:hub) {
-  xlsx_file <- paste0("./data/internal/", qtr, "_", i, "_Prod016_op.xlsx")
-  Prod016_op <- read_xlsx(xlsx_file) %>%
-    mutate(Hub = i, QTR = qtr, PatCls = "O") %>%
-    replace(is.na(.), 0)
-  if (i == 1) {
-    Prod016_op_all <- Prod016_op
-    next
-  }
-  Prod016_op_all <- full_join(Prod016_op_all, Prod016_op)
-  rm(Prod016_op)
-}
-Prod016 <- full_join(Prod016_ip_all, Prod016_op_all)
-rm(Prod016_ip_all, Prod016_op_all)
-
-## Import misc external data files ###########
-{
-  ccmcc <- read_xlsx("./data/external/2019ccmccDXlist_nodecimal.xlsx")
-  ICD10CM <- read_xlsx("./data/external/201910cmlist_nodecimal.xlsx")
-  drg <- read_xlsx("./data/external/DRGGROUPS.xlsx")
-  keys <- read_xlsx("./data/external/keys.xlsx")
-  prterms <- read_xlsx("./data/external/prterms.xlsx")
-  lowprecis <- read_xlsx("./data/external/lowprecis.xlsx")
-  lowrecall <- read_xlsx("./data/external/lowrecall.xlsx")
-}
 ## Benchmarks: ======
 ## 12/12/2018: 51 seconds including CAC008 (19.27 seconds excluding)
 # Section II: Reshape Data ------------------
-## CDI09d --------------------
 
-
-## CAC001 ----------
-### create CAC001_all_fac
-# attempting to add summary columns
-# really bad at this
-# need to remove outliers but don't want to remove the individual coder data
