@@ -7,7 +7,9 @@ library(shiny)
 library(readxl)
 library(readr)
 library(tidyverse)
-library(data.table)
+library(skimr)
+library(moderndive)
+library(colorspace)
 options(digits = 5)
 }
 # Collect Info from user
@@ -17,7 +19,8 @@ options(digits = 5)
                          # or equal to the quarter you specify.  See help documentation.
                          # Note that this will delete data from your consolidated file. Backups are recommended
   hub <- 7## enter TOTAL number of 360 hubs/servers; no quotes
-
+  coded_accts <- 99 # set minimum number of coded accounts for certain stats to help prevent low volumnes from skewing data
+  
   # if you pulled this file from github you should not need to change the 
   # _w_orking _d_irectory.  If there are errors when you try to read files, 
   # uncomment and update the line below:
@@ -85,17 +88,15 @@ read_ext_file("icd10pcs_desc")
   CAC001_all <- suppressMessages(full_join(CAC001_all, CAC001_op_dx_all))
   rm(CAC001_op_dx_all)
   CAC001_all <- suppressMessages(full_join(CAC001_all, CAC001_op_px_all)) %>%
-    rename(Coder = "Last Reviewer/Coder") %>% 
+    filter(`Last Reviewer/Coder` != "Grand Totals") %>%
+    sep_lrcdr()  %>% 
     replace(is.na(.), 0)  %>% 
     mutate(
       Facility = str_replace(Facility, "---", "Total"),
       `% Precision` = (`% Precision` / 100), # converts to decimal e.g. 54.32 becomes 0.5432
       `% Recall` = (`% Recall` / 100)
-    ) %>% # converts to decimal - doing "/100" here avoids having to do "*100" every other time a rate is calculated
-    sep_cdr() %>% 
-    filter(`Coder` != "Grand Totals") %>%
-    select(
-      Coder, coderid, Facility, Hub, `Accepted`, `All Suggested`, `All Coded`,
+    ) %>% # converts to decimal - doing "/100" here avoids having to do "*100" every other time a rate is calculate
+    select(coderid, Facility, Hub, `Accepted`, `All Suggested`, `All Coded`,
       `% Precision`, `% Recall`, Qtr, IpOp, DxPx
     ) # Rearrange columns.  "From CAC" number by definition is the same as "Accepted"
   rm(CAC001_op_px_all)
@@ -164,8 +165,7 @@ read_ext_file("icd10pcs_desc")
       CdrRclMax_all = max(`%_Recall_fac`),
       CdrRclVar_all = sd(`%_Recall_fac`)
     ) %>%
-    select(
-      -Coder, -coderid, -`All Suggested`, -Accepted, -`% Precision`,
+    select(-coderid, -`All Suggested`, -Accepted, -`% Precision`,
       -`All Coded`, -`% Recall`, -name_internal
     ) %>%
     arrange(desc(`%_Precision_fac`)) %>% 
@@ -178,7 +178,7 @@ read_ext_file("icd10pcs_desc")
     arrange(desc(cde_prop)) %>%
     filter(row_number() == 1) %>%
     ungroup() %>%
-    select(Coder, coderid, Facility, cde_prop) %>% join_fac() %>% mutate(Qtr=qtr)
+    select(coderid, Facility, cde_prop) %>% join_fac() %>% mutate(Qtr=qtr)
  ## coder pnr 
   cdr_pnr <- CAC001_all %>%
     filter(Facility != "Total") %>%
@@ -194,12 +194,14 @@ read_ext_file("icd10pcs_desc")
     select(-Facility, -Hub, -Accepted, -`All Suggested`, -`All Coded`, -`% Precision`, -`% Recall`) %>% # not sure about this
     join_cdr_fac() %>%
     rename(Lead_Faciity = Facility) %>% 
-    distinct(Coder, coderid, IpOp, DxPx, .keep_all = TRUE)
+    distinct(coderid, IpOp, DxPx, .keep_all = TRUE)
   ## Save files to cons folder 
   write_cons_file(cdr_pnr)
   write_cons_file(cdr_fac)
   write_cons_file(fac_pnr)
   rm(cdr_pnr, fac_pnr, CAC001_all)
+cdr_pnr_all_sum <- cdr_pnr_all %>% group_by(Qtr) %>% skim()
+fac_pnr_all_sum <- fac_pnr_all %>% group_by(Qtr) %>% skim()
 }
 {# 09d Physician query listing ================================================
 read_360_file("CDI09d") 
@@ -210,7 +212,7 @@ CDI09d_all <- CDI09d_all %>%
     separate(`Queried Provider`, c("Queried Provider", "QueryMDid"), sep = "[()]", extra="drop") %>% 
     separate(`Responding Provider`, c("Responding Provider", "RespMDid"), sep = "[()]", extra="drop") %>% 
     select( -`Query Author`, -`Total Queries`, -`Facility`, -`Patient Name`, -`Admit Date`, -Gender,-MRN, -`Total Visits`) %>% 
-    select(Coder, coderid, everything())  %>% 
+    select(coderid, everything())  %>% 
     rename(Facility=`Facility__1`) %>% join_fac()
 # high level stats by coder and facility
 ###  
@@ -218,7 +220,7 @@ CDI09d_all <- CDI09d_all %>%
 ###
 # coder level
 cdr_qry <- CDI09d_all %>%
-  group_by(Coder) %>%
+  group_by(coderid) %>%
   summarize(qry_n_cdr = n()) %>% 
   ungroup() %>% 
   mutate(qry_prptn_cdr = qry_n_cdr/sum(qry_n_cdr), qry_dstn_mean_cdr=(qry_n_cdr-mean(qry_n_cdr)), Qtr=qtr) %>% 
@@ -237,25 +239,25 @@ write_cons_file(fac_qry)
 rm(fac_qry)
 rm(CDI09d_all)
 }
-{# CAC003 auto-suggested codes precision and recall by code ===================
+{# CAC003 auto-suggested codes precision and recall by code (BIG files will take longer to compile) ===================
 read_360_file("CAC003_ip_cdr", 9)
-CAC003_ip_cdr_all <- CAC003_ip_cdr_all %>% 
+CAC003_ip_cdr_all <- CAC003_ip_cdr_all %>% select(-`From CAC`) %>% 
   filter(`Dx/Proc` != "---", `All Suggested` > 24) %>% 
   replace(is.na(.), 0)  %>% 
   mutate(IpOp = "Ip") %>% sep_dxpx() %>% sep_lrcdr()
 
 read_360_file("CAC003_op_cdr", 9)
-CAC003_op_cdr_all <- CAC003_op_cdr_all %>% 
+CAC003_op_cdr_all <- CAC003_op_cdr_all %>% select(-`From CAC`) %>% 
   filter(`Dx/Proc` != "---", `All Suggested` > 24) %>% replace(is.na(.), 0)  %>% 
   mutate(IpOp = "Op") %>% sep_dxpx() %>% sep_lrcdr()
 
 read_360_file("CAC003_ip_fac", 9)
-CAC003_ip_fac_all <- CAC003_ip_fac_all %>%
+CAC003_ip_fac_all <- CAC003_ip_fac_all %>% select(-`From CAC`) %>% 
   filter(`Dx/Proc` != "---", `All Suggested` > 24) %>% replace(is.na(.), 0)  %>% 
   mutate(IpOp = "Ip") %>% sep_dxpx()
 
 read_360_file("CAC003_op_fac", 9)
-CAC003_op_fac_all <- CAC003_op_fac_all %>% 
+CAC003_op_fac_all <- CAC003_op_fac_all %>% select(-`From CAC`) %>% 
   filter(`Dx/Proc` != "---", `All Suggested` > 24) %>% replace(is.na(.), 0)  %>% 
   mutate(IpOp = "Op") %>% sep_dxpx()
 
@@ -264,7 +266,7 @@ CAC003_op_fac_all <- CAC003_op_fac_all %>%
     sum_pnr()
 
   cdr_pnr_dxpx <- suppressMessages(full_join(CAC003_ip_cdr_all, CAC003_op_cdr_all)) %>%
-    group_by(Coder, Code) %>%
+    group_by(coderid, Code) %>%
     sum_pnr() %>% 
     group_by(Hub) %>% 
     mutate(pcn_rnk_hub = min_rank(`% Precision`))
@@ -279,13 +281,13 @@ CAC003_op_fac_all <- CAC003_op_fac_all %>%
     filter(is_ccmcc == "TRUE", IpOp=="Ip") %>% 
     select(-is_ccmcc)
   
-rm(CAC003_op_fac_all, CAC003_ip_fac_all)
-rm(CAC003_op_cdr_all, CAC003_ip_cdr_all)
 
 write_cons_file(fac_pnr_dxpx)
 write_cons_file(cdr_pnr_dxpx)
 write_cons_file(cde_pnr_dxpx)
 write_cons_file(cde_pnr_ccmcc)
+rm(CAC003_op_fac_all, CAC003_ip_fac_all, fac_pnr_dxpx)
+rm(CAC003_op_cdr_all, CAC003_ip_cdr_all, cdr_pnr_dxpx, cde_pnr_dxpx, cde_pnr_ccmcc)
 }
 {# CAC007 All Codes Entry Method Summary ======================================
 read_CAC007("CAC007_ip_dx_cdr")
@@ -319,7 +321,7 @@ CAC007_op_px_cdr_all <- CAC007_op_px_cdr_all %>%
     replace(is.na(.), 0)
   cdr_entry <- suppressMessages(full_join(cdr_entry, CAC007_op_px_cdr_all)) %>%
     replace(is.na(.), 0) %>% 
-  group_by(Coder, IpOp, PxDx) %>%
+  group_by(coderid, IpOp, PxDx) %>%
   mutate(TotCodes = sum(`CAC`,`CDI`,`MAN`)) %>%
   mutate(`CAC%`= (CAC/TotCodes),
          `CDI%`=(CDI/TotCodes),
@@ -328,11 +330,12 @@ CAC007_op_px_cdr_all <- CAC007_op_px_cdr_all %>%
          `MANAuto` = (MAN.CRS.S+MAN.Drct.Code.S),
          `MANAuto%` = (MANAuto/MAN),
          `CAC+CDI%`=`CAC%`+`CDI%`) %>% 
-  select(Coder, coderid, `CAC%`, `CDI%`, `MAN%`, TotCodes, MAN.CRS.S, MAN.Drct.Code.S, MAN, `MANAuto%`, `CAC+CDI%`, Qtr, IpOp, PxDx,Hub)
+  select(coderid, `CAC%`, `CDI%`, `MAN%`, TotCodes, MAN.CRS.S, MAN.Drct.Code.S, MAN, `MANAuto%`, `CAC+CDI%`, Qtr, IpOp, PxDx,Hub)
 rm(CAC007_op_px_cdr_all)
 rm(CAC007_ip_dx_cdr_all, CAC007_op_dx_cdr_all)
 rm(CAC007_ip_px_cdr_all)
 write_cons_file(cdr_entry)
+rm(cdr_entry)
 ### * CAC007 Facility Level
 read_CAC007("CAC007_ip_dx_fac")
 CAC007_ip_dx_fac_all <- CAC007_ip_dx_fac_all %>% 
@@ -374,10 +377,10 @@ fac_entry <- suppressMessages(full_join(fac_entry, CAC007_op_px_fac_all)) %>%
          `MANAuto%` = (MANAuto/MAN),
          `CAC+CDI%`=`CAC%`+`CDI%`) %>% 
   select(Facility, `CAC%`, `CDI%`, `MAN%`, TotCodes, MAN.CRS.S, MAN.Drct.Code.S, MAN, `MANAuto%`, `CAC+CDI%`, Qtr, IpOp, PxDx)
-rm(CAC007_op_px_fac_all)
-rm(CAC007_ip_dx_fac_all, CAC007_op_dx_fac_all)
-rm(CAC007_ip_px_fac_all)
+
 write_cons_file(fac_entry)
+rm(CAC007_ip_dx_fac_all, CAC007_op_dx_fac_all)
+rm(CAC007_ip_px_fac_all, CAC007_op_px_fac_all, fac_entry)
 }
 {# IP003 HAC DRGs ==========
 read_360_file("IP003_mcr", 11)
@@ -389,7 +392,7 @@ IP003_mcr_all <- IP003_mcr_all %>%
   rename(Lead_Facility = "Facility")
 
 cdr_hac <- IP003_mcr_all %>% 
-  group_by(Coder, coderid, Qtr, IpOp, `Primary Grouper`, `DRG HAC Status`, Lead_Facility, Fac, Group) %>% 
+  group_by(coderid, Qtr, IpOp, `Primary Grouper`, `DRG HAC Status`, Lead_Facility, Fac, Group) %>% 
   mutate_at(vars(matches("Case")), as.numeric) %>% 
   mutate_at(vars(matches("Reim")), as.numeric) %>% 
   summarise(tot_visits = sum(`Total Visits`),  #consolidates multiple hubs (need to keep DRG HAC Status grouping)
@@ -399,7 +402,7 @@ cdr_hac <- IP003_mcr_all %>%
          post_case_mix = weighted.mean(`Case Mix__1`, `Total Visits`),
          post_tot_reimb = sum(`Exp Reim__1`),
          post_avg_reimb = weighted.mean(`Avg Exp Reim__1`, `Total Visits`)) %>% 
-  group_by(Coder, coderid, Qtr, IpOp, `Primary Grouper`) %>%  #consolidates overall pre/post, can drop DRG HAC grouping
+  group_by(coderid, Qtr, IpOp, `Primary Grouper`) %>%  #consolidates overall pre/post, can drop DRG HAC grouping
          mutate(pre_case_mix = weighted.mean(pre_case_mix, (tot_visits)),
          pre_tot_reimb = sum(pre_tot_reimb),
          pre_avg_reimb = weighted.mean(pre_avg_reimb, tot_visits),
@@ -414,7 +417,7 @@ cdr_hac <- IP003_mcr_all %>%
          hac_drg = `2-One or more HAC criteria met and Final DRG changes`) %>% 
   mutate(hac_rate_1000 = ((hac_no_drg + hac_drg)/1000)/((no_hac+hac_no_drg+hac_drg)/1000), hac_drg_rate_1000 = (hac_drg/1000)/((no_hac+hac_no_drg+hac_drg)/100))
 write_cons_file(cdr_hac)
-rm(IP003_mcr_all)
+rm(IP003_mcr_all, cdr_hac)
 } ## NEEDS MORE WORK
 {# IP004 Primary and Secondary DRG Listing ==============================
 # See important note in 360 file prep document about secondary DRGs
@@ -429,35 +432,86 @@ IP004_all <- IP004_all %>%
   separate(`Pt Type`, c("IpOp", "ptype"), sep="[/]", extra="drop") %>% 
   mutate(`IpOp` = str_replace(IpOp, "I", "Ip")) %>% 
   mutate(`IpOp` = str_replace(IpOp, "O", "Op")) %>% 
-  mutate(Dx=str_replace(Dx, " ",""), Px=str_replace(Px, " ",""))
-  
-IP004_pbar <- IP004_all %>% filter(Hub %in% c(1:5)) %>% mutate(Fac=str_sub(`Visit ID`, 1, 3)) %>% select(`Visit ID`, Fac, coderid)
-IP004_satx <- IP004_all %>% filter(Hub %in% c(6)) %>% mutate(Fac=str_sub(`ptype`, 1, 1)) %>% 
-  mutate(Fac= str_replace(Fac, "A", "BMA")) %>% select(`Visit ID`, Fac, coderid)
-  
+  mutate(Dx=str_replace(Dx, " ",""), Px=str_replace(Px, " ","")) %>% 
+  select(-`Total Visits`, -MRN, -Name, -`Admit Date`)
 
-mutate_if(IP004_all,'Hub'=6, Fac=ptype)
+## this next section is specific to author's organization.  It converts facility information tucked in the visit ID or location to
+## our system's standardized facility codes.  
+IP004_5 <- IP004_all %>% filter(Hub %in% c(1:5))  %>% mutate(Fac=str_sub(`Visit ID`, 1, 3))
+IP004_6 <- IP004_all %>% filter(Hub %in% c(6)) %>% 
+  mutate(Fac=str_sub(`ptype`, 1, 3)) %>% 
+  mutate(Fac=str_replace(Fac, "AIP", "BMA")) %>% 
+  mutate(Fac=str_replace(Fac, "BIP", "NCA")) %>% 
+  mutate(Fac=str_replace(Fac, "CIP", "NBH")) %>% 
+  mutate(Fac=str_replace(Fac, "DIP", "MTB")) %>% 
+  mutate(Fac=str_replace(Fac, "EIP", "SLH")) %>% 
+  mutate_at(vars(matches("Visit ID")), as.character()) 
+
+IP004_7 <- IP004_all %>% 
+  filter(Hub %in% c(7)) %>%  
+  mutate(Fac=str_sub(`Visit ID`, 1, 3)) %>% 
+  mutate(Fac=str_replace(Fac, "100", "DHR")) %>% 
+    mutate(Fac=str_replace(Fac, "130", "DHR")) %>% 
+  mutate(Fac=str_replace(Fac, "180", "DHR")) %>% 
+    mutate(Fac=str_replace(Fac, "200", "DSH")) %>% 
+  mutate(Fac=str_replace(Fac, "280", "DSH")) %>% 
+  mutate(Fac=str_replace(Fac, "300", "DHV")) %>% 
+  mutate(Fac=str_replace(Fac, "380", "DHV")) %>% 
+  mutate(Fac=str_replace(Fac, "394", "DHV")) %>% 
+  mutate(Fac=str_replace(Fac, "409", "DRA")) %>% 
+  mutate(Fac=str_replace(Fac, "500", "DHR")) %>% 
+  mutate(Fac=str_replace(Fac, "580", "DHR")) %>% 
+  mutate(Fac=str_replace(Fac, "600", "DDR")) %>% 
+  mutate(Fac=str_replace(Fac, "680", "DDR")) %>% 
+  mutate(Fac=str_replace(Fac, "700", "DCR")) %>% 
+      mutate(Fac=str_replace(Fac, "780", "DCR")) %>% 
+  mutate_at(vars(matches("Visit ID")), as.character())
+if (qtr > 2018.2) {
+  IP004_8 <- IP004_all %>% 
+    filter(Hub %in% c(8)) %>%  
+    mutate(Fac=str_sub(`Visit ID`, 1, 1)) %>% 
+    mutate(Fac=str_replace(Fac, "W", "SVH")) %>% 
+    mutate(Fac=str_replace(Fac, "F", "FUH")) %>% 
+    mutate(Fac=str_replace(Fac, "L", "LMF")) %>% 
+    select(`Visit ID`, Fac, coderid)
+}
+suppressMessages(
+if (qtr > 2018.2) {
+  IP004_all <- full_join(IP004_5, IP004_6) %>% full_join(IP004_7) %>% full_join(IP004_8)
+  rm (IP004_5, IP004_6, IP004_7, IP004_8)
+}  else {
+    IP004_all <- full_join(IP004_5, IP004_6) %>% full_join(IP004_7)
+    rm (IP004_5, IP004_6, IP004_7)
+    }
+)
+## end system specific section
+
 # needs some tidying to make variables in constant location
 # Data may fail if you don't collect secondary DRG on every patient
 Pt <- IP004_all %>% 
-  select (Coder, coderid,`Visit ID`, `Disch Date`, LOS, IpOp, ptype, Fac, `Disch Disposition`, `Dx`, `Px`)
+  select (coderid,`Visit ID`, `Disch Date`, LOS, IpOp, Fac, Qtr, `Disch Disposition`, `Dx`, `Px`)
 DRG <- IP004_all %>%
-  select(`Visit ID`, DRG, Wgt, `SOI/ROM`, ALOS, GLOS) %>%
-  separate(DRG, c("DRG","Grouper"),sep="[()]") %>%
-  separate(DRG, c("DRG"), sep="[-]") %>% 
+  select(`Visit ID`, DRG, Wgt, `SOI/ROM`, ALOS, GLOS) %>% #DRG is the secondary and DRG__1 is primary...
+  filter(!is.na(DRG)) %>% 
+  # DRG 009 ECMO has () but it's an APR-DRG so we can just flip ECMO -> APRDRG
+  separate(DRG, c("DRG","Grouper"),sep="[()]", extra="drop") %>%
+  separate(DRG, c("DRG"), sep="[-]", extra="drop") %>% 
   #change to number to match DRG1
-   mutate_at(vars(matches("Wgt")), as.numeric) 
+   mutate_at(vars(matches("Wgt")), as.numeric)
 DRG1 <-IP004_all %>%
   select(`Visit ID`, DRG__1, Wgt__1, `SOI/ROM__1`, ALOS__1, GLOS__1) %>%
-  separate(DRG__1, c("DRG","Grouper"),sep="[()]") %>%
-  separate(DRG, c("DRG"), sep="[-]") %>%
-  rename(Wgt=Wgt__1, `SOI/ROM`= "SOI/ROM__1", ALOS=ALOS__1, GLOS=GLOS__1)
+  separate(DRG__1, c("DRG","Grouper"),sep="[()]", extra="drop") %>%
+  separate(DRG, c("DRG"), sep="[-]", extra="drop") %>%
+  rename(Wgt=Wgt__1, `SOI/ROM`= "SOI/ROM__1", ALOS=ALOS__1, GLOS=GLOS__1) %>% 
+  replace(is.na(.), 0)  %>% 
+  mutate_at(vars(matches("Wgt")), as.numeric) 
 # Bring Primary DRGs and Secondary DRGs into one table
 DRG <- full_join(DRG, DRG1)
 rm(DRG1)
 #Now designate MS vs APR DRG Info - this is the equivalent of find and replace
 #As long as the various state APR systems have `APR` in the desciption they will all be classified to APRDRG
-  DRG$Grouper[grepl("APR", DRG$Grouper, ignore.case=FALSE)] <- "APRDRG"
+DRG$Grouper[grepl("ECMO", DRG$Grouper, ignore.case=FALSE)] <- "APRDRG"  
+DRG$Grouper[grepl("APR", DRG$Grouper, ignore.case=FALSE)] <- "APRDRG"
   DRG$Grouper[grepl("Medicare", DRG$Grouper, ignore.case=FALSE)] <- "MSDRG"
   DRG$Grouper[grepl("MS", DRG$Grouper, ignore.case=FALSE)] <- "MSDRG"
   DRG$Grouper[grepl("TRI", DRG$Grouper, ignore.case=TRUE)] <- "MSDRG"
@@ -466,28 +520,86 @@ rm(DRG1)
 # The first part in green is the string you want to search for
 # the last part is where you would classify it to APRDRG or MSDRG
 # see missinggrouper list for possible missing groupers that need to be mapped
-APR <- DRG %>%
+APR_MDC <- drg_apr %>% select(APRDRG, SOI, MDC, Med_Proc, WAR)
+  
+  APR <- DRG %>%
   filter(Grouper=="APRDRG") %>%
-  separate(`SOI/ROM`, c("SOI", "ROM"), sep="[/]") %>%
-  rename(APRLOS=ALOS, APRGLOS=GLOS, APRRW=Wgt) %>%
+    separate(`SOI/ROM`, c("SOI", "ROM"), sep="[/]") %>%
+  mutate(APRLOS=as.numeric(ALOS), APRGLOS=as.numeric(GLOS), APRRW=as.numeric(Wgt)) %>%
   mutate(APRDRG=as.numeric(DRG),SOI=as.numeric(SOI), ROM=as.numeric(ROM), SOIROM=as.numeric(SOI)+as.numeric(ROM)) %>%
-  # we count soi+rom score of 7 or 8 as an expected mortality
-  # the combined score might be useful for detecting any trends with some coders coding lower overall severity than others
-  select(-Grouper, -DRG)
-noapr <- anti_join(APR, DRG)
+    left_join(APR_MDC) 
+
 MS <- DRG %>%
   mutate(MSDRG=as.numeric(DRG)) %>%
   filter(Grouper=="MSDRG") %>%
   select(-DRG, -`SOI/ROM`, -Grouper) %>%
-  rename(MSLOS=ALOS, MSGLOS=GLOS, MSRW=Wgt)
-noms <-anti_join(MS, DRG)
-#and bring back together again so that we still have one row per pt
-APRMS <- full_join(APR, MS)
-Missinggrouper <- full_join(noapr, noms) #hope this is 0 but including just in case we get another grouper we need to map to APR or MS
-#if so just duplicate the DRG$Grouper[grepl("...")], where ... is some distinct identifier
-cdr_drg <- full_join(APRMS, Pt)
-rm(noapr,DRG, Pt, APRMS, APR, MS)
-write_cons_file(cdr_drg)
+  mutate(MSLOS=as.numeric(ALOS), MSGLOS=as.numeric(GLOS), MSRW=as.numeric(Wgt)) 
+
+#Trying to build a process to check for missing groupers...
+#noapr <- anti_join(APR, IP004_all, by=`Visit ID`)
+#noms <-anti_join(MS, IP004_all)
+#Missinggrouper <- full_join(noapr, noms) #hope this is 0 but including just in case we get another grouper we need to map to APR or MS
+
+## prep for WAR stat
+cdr_drg_apr_war <- suppressMessages(full_join(APR, Pt)) %>% 
+  filter(!MDC %in% c("14","15"), !Med_Proc == "NA") %>% # exclude OB/NB
+  group_by(coderid, Med_Proc, Qtr) %>% 
+  summarize(n=n(), war=sum(WAR)/n) %>% 
+  ungroup() %>% 
+  group_by(coderid, Qtr) %>% 
+  mutate(tot=sum(n)) %>% 
+  select(-n) %>% 
+  spread(Med_Proc, war) %>% join_cdr_fac() %>% 
+  ungroup() %>% 
+  mutate(WARquadrant=(P>mean(P))+(M>mean(M))) %>% 
+  rename(WAR_Med_APR=M, WAR_Surg_APR=P)
+
+
+## Prep for SLG stats
+cdr_drg_apr_avg <- suppressMessages(full_join(APR, Pt)) %>% 
+  filter(!MDC %in% c("14","15"), !Med_Proc == "NA") %>% # exclude OB/NB
+  group_by(coderid, Qtr, Med_Proc) %>% 
+  summarize(SOIavg=mean(SOI), ROMavg=mean(ROM), SOIROMavg=mean(SOI+ROM), n=n()) %>% ungroup() %>% 
+ # mutate(AVGquadrant=(SOIavg>weighted.mean(SOIavg,n))+(ROMavg>weighted.mean(ROMavg, n))) %>% 
+  #testing
+  ungroup() %>% 
+  group_by(coderid, Qtr) %>% 
+  mutate(tot=sum(n)) %>% 
+  select(-n) %>% 
+  gather(temp, score, ends_with("avg")) %>% 
+  unite(temp1, Med_Proc, temp, sep = "_") %>%  
+  spread(temp1, score)
+
+cdr_drg_apr_slg <- suppressMessages(full_join(APR, Pt)) %>% 
+  filter(!MDC %in% c("14","15"), !Med_Proc == "NA") %>% # exclude OB/NB
+  group_by(coderid, Qtr, Med_Proc, SOI, ROM) %>% 
+  summarize(n=n()) %>% mutate(SOI_weight=SOI) %>% 
+   mutate(SOI_weight=(str_replace(SOI_weight, "1", "0"))) %>% 
+  mutate(SOI_weight=(str_replace(SOI_weight, "3", "9"))) %>% 
+  mutate(SOI_weight=(str_replace(SOI_weight, "4", "16"))) %>% 
+  mutate(SOI_weight=(str_replace(SOI_weight, "2", "4"))) %>% 
+  mutate(soi_rom=as.numeric(SOI_weight)*ROM*n) %>% 
+  ungroup() %>% 
+  group_by(coderid, Qtr, Med_Proc) %>% 
+    summarize(SevSlg=sum(as.numeric(SOI_weight))*10/sum(n), n=sum(n)) %>% 
+  group_by(coderid, Qtr) %>% 
+  mutate(tot=sum(n)) %>% 
+  select(-n) %>% 
+  spread(Med_Proc, SevSlg)  %>% 
+  ungroup() %>% 
+  rename(SLG_Med_APR=M, SLG_Surg_APR=P)
+
+cdr_drg_apr_stats <- inner_join(cdr_drg_apr_avg, cdr_drg_apr_slg) %>% inner_join(cdr_drg_apr_war)
+  
+#%>% group_by(coderid, Qtr) %>% summarise(SOIslg=totSOI/n)
+  
+cdr_drg_ms <- suppressMessages(full_join(MS, Pt)) %>% 
+  group_by(coderid, MSDRG, Qtr) %>% 
+  summarize(n=n())
+#rm(noapr,DRG, Pt,  APR, MS)
+write_cons_file(cdr_drg_apr_war)
+#write_cons_file(cdr_drg_ms)
+#rm(cdr_drg_apr, cdr_drg_ms)
 }
 { #IPPlus001.xlsx ========================
 read_360_file("IPPlus001", 11)
@@ -507,6 +619,7 @@ cdr_cmi <- IPPlus001_all %>%
   select(-`Financial Class`)
 write_cons_file(cdr_cmi_fc)
 write_cons_file(cdr_cmi)
+rm(cdr_cmi_fc, cdr_cmi)
 }
 {# Prod16 =====================
 read_360_file("Prod016_ip",9)
@@ -521,11 +634,25 @@ Prod016_op_all <- Prod016_op_all %>%
   sep_cdr()
 cdr_prod <- full_join(Prod016_op_all, Prod016_ip_all)
 write_cons_file(cdr_prod)
-rm(Prod016_op_all, Prod016_ip_all)
+rm(Prod016_op_all, Prod016_ip_all, cdr_prod)
 }
-########################################################
 
 ## Benchmarks: ======
 ## 12/12/2018: 51 seconds including CAC008 (19.27 seconds excluding)
-# Section II: Reshape Data ------------------
+## 12/30/2018
+##      49 seconds with no existing "_all" files and no CAC008 Also CAC003 has all codes, not just < 50% - 7 hubs
+#       52 seconds excluding CAC008 but with saving and loading "_all" files.  
+#       58 seconds - three quarters
+#  
 
+# CoderMetric: WAR = Wins (aprWeight) Above Replacement -----
+## See notes - "0" would be a sOI of 1 for the APR DRG assigned
+cdr_drg_apr_war_all <- cdr_drg_apr_war_all %>% filter(tot>99)
+P_avg <- mean(cdr_drg_apr_war_all$Surg_APRDRGs)
+M_avg <- mean(cdr_drg_apr_war_all$Med_APRDRGs)
+war <- plot_ly(cdr_drg_apr_war_all,x=~WAR_Med_APR, y=~WAR_Surg_APR, slice=~Qtr,color=~Group, colors="Dark2", size=~tot, mode="markers", 
+               type="scatter", text=~paste(coderid, " accts:",tot)) %>% 
+  add_trace(y=~P_avg, mode="lines", color="Surg Avg") %>% 
+  add_trace(x=~M_avg, mode="lines", color="Med Avg") %>% 
+  layout(title='WAR-aprWeight Above Replacement')
+war

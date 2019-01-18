@@ -11,15 +11,7 @@ During the 20th century in baseball, a batter's success was measured on batting 
 With the dawn of the 21st century, a new word started to weave its way into the fabric of the game: "Sabermetrics".  Sabermetrics refers to measuring and analyzing a seemingly countless number of baseball statistics.  For example, we can measure the distance, velocity, and even the launch angle of a batted ball.  This enables baseball statisticians and management to make determinations based on overall success of a player. There is now the concept of a "five-tool player", where batting average is just one of the five categories measured.
 As coding operational or compliance leaders, we have a similarly explosive wealth of data on coder performance available within the 360 platform.  Join us for a lighthearted, interactive discussion on some new ways to meaasure a coder's success beyond accuracy and productivity.  During the discussion, we will explore how baseball's "five tools" might be applied to coder performance.   In other words, let's talk about "Codermetrics"!
 
-The most mean- ingful and useful metrics will allow you to connect and relate coders and teams to their organizational goals.
-Bad metrics will distract and waste time.   Metrics can turn out to be bad if they are either too hard to gather, or too abstract and confusing. 
 
-To evaluate whether a metric itself is good or bad, you can ask yourself the following questions:
-• Is the metric relatively easy to describe and understand?
-• Can the metric show me something I don’t already know?
-• Does the metric clearly relate to a goal I care about?
-
-If the answer to any of the above questions is clearly no, then the metric either needs more work, or it should probably be discarded.
 
 ## outcomes
 baseball: k, bb, 1b, 2b, 3b, hr, hbp, reach on error, other types of outs
@@ -29,98 +21,11 @@ Unlike baseball, the main goal with coder metrics is not to award batting titles
 Are high outliers best in case examples or are they skimping on something
 Are low outliers trainable, are there obstacles they have that others do not?
 
-# 1. Hitting for Average = general code selection patterns / ------------------------------------------
-
-*  Query rates (could be primary or secondary but we need to put it somewhere)
-
-*  Pepper
-
-* Unspecified (hard to get to)
-
-* Chronic codes per account coded (hard to get to)
-
-# 2. Hitting for Power = secondary diagnosis selection / severity -------------------------------------------
-
-## rejecting cc/mcc (low outliers only)
-* likely indicative of false-positives or lack of specificity
- - for the lack of specificity, the coder should be using validate recode
- * cac003
-## rejecting all other codes (low outliers only)
-
-## Severity slugging percentage==============================================================================
-Just for giggles:
-| Baseball | Coding SOI | Coding SOI*ROM | Multiplier
-|:-|:-:|:-:|:-:|
-|K | 1* | 1    | 0     |
-|BB| -  | 2-3  |  2-3  |
-|1B| 1  | 4    | 4-8   |
-|2B| 2  | 6-8  | 12-16 |
-|3B| 3  | 9-12 | 27-36 |
-|HR| 4  | 16   | 64    |
-
-Then average excluding BB for each coder.  Above the Mendoza line is probably where most coders will end up but those who code toward either severity extreme will be highlighted
-
-## Reimbursement per coded visit
-
-## HAC extremes
-IP003
-(Govt expects you to know what's in your data - IP003 tells you if certain coders NEVER have HACs, which should be a red flag)
-
-# 3. Baserunning / speed = productivity
-
-## Coder Access Rate (visits coded / visits accessed)
-
-# 4. Throwing / assists = CAC metrics
-## Auto suggested precision (codes accepted / all suggested) and recall (accepted / all coded)  (cdr + fac)
-* CAC001 by ip/op/px/dx
-* goal is 75% in each
-* low outliers could suggest coder adoption or engine performance issues
-
-## Auto suggested methods entry rate (auto-suggested + CDI / manual (exclude other))
-CAC007
-
-## A/S CRS rate
-CAC007
-# 5. Fielding / defense = quality
-## Audit expert DRG change rate (cdr)
-## Compliance audits (fac)
-
-
-# 6. Team wins - how do the various stats interconnect to facility success
-##
-
-
-# 7. Park adjustment factors
-
-* bed size (quartiles)
-* total discharges (quartlies)
-* complexity --??
-* mom/baby factor - productivity offset and CMI adjustments
-    * applied to 80th percentile facilities with highest proportion of MDC 14 and 15 compared to all MDCs for most recently completed FFY (i.e. Oct 17 - Sep 18)
-    * where we can exclude by payor or mdc 14/15 we do
-    * where we can't, we multiply by .97 for productivity-related metrics and 1.03 for CMI/severity related stats
-    * no adjustment for CAC metrics
-
-
-https://www.baseball-reference.com/about/parkadjust.shtml 
 
 ====
-Also video Moneyball for software teamsThe challenge is quality vs quantity a trade off?  Triangle: severity, time, accuracy.   Is it zero sum, where you focus on one at the expense of the other two; Or can the best coder, trained in concepts and process, excell in all three?
-	* How well do coders handle their core responsibilities
 
-		* Severity
-		* productivity
-		* accuracy 
-	* in what ways do coders contribute beyond their core responsibilities
 
-		* Coaching / peer review / querying 
-	* how much do they help others
-
-		* ??
-	* is the team succeeding or failing 
-	* can you categorize coders. May you don’t need 5 Albert Pujols coders if you have one or two, and the others are playing key supporting roles — focus on team results. The team win is what counts. 
-
-Dont want metrics to be divisive. Not a grading system. Meant to help improve. Player = coderTeam = hospital Division = GroupLeague = Company(Pitcher =  in the analogy, physician - but we don't want to 'go there' with docs as adversaries 0 At bat/plate appearance = final coded accountGame = day workedOut = sev 1 Los > gmlos for apr DRG  (soi+rom 1,2)single= sev 1 Los <= gmlos or sev 2 > gmlos (3)Double =  (4,5)
+Player = coderTeam = hospital Division = GroupLeague = Company(Pitcher =  in the analogy, physician - but we don't want to 'go there' with docs as adversaries 0 At bat/plate appearance = final coded accountGame = day workedOut = sev 1 Los > gmlos for apr DRG  (soi+rom 1,2)single= sev 1 Los <= gmlos or sev 2 > gmlos (3)Double =  (4,5)
 	* Sev 2 <= gmlos
 	* sev 3 > gmlos
 
@@ -132,27 +37,7 @@ hr sev 4 (7,8)Runs = 2b, 3b, hrRunning - productivityStolen base = min/pt day <=
 ===================
 
 # Data Analysis Questions (<- belongs with 'codermetrics')
-- In order to know what variables and visualizations we want to create, we need to first ask ourselves what questions are we trying to answer
-    - A failure to do this can result in data overload and/or the recipient wondering what he/she is supposed to do with all this data
-## Exploratory Data Analysis  
-According to Hadley Wickham, there are three components to exploratory data analysis and each involve questions^[Wickam, R for Data Science, Chapter 7 https://r4ds.had.co.nz/exploratory-data-analysis.html]:  
 
-1. Generate questions about your data.
-2. Search for answers by visualising, transforming, and modelling your data.
-3. Use what you learn to refine your questions and/or generate new questions.
-
-The key to asking _quality_ questions is to generate a large _quantity_ of questions.
-
-It's interesting that in my compliance career, most compliance breakdowns could have been prevented if someone had thought to ask the right questions ("is this sustainable?", "how can we validate these results?", or "just because we can, does that mean we should?")
-
-## Common starting questions  
-* Which values are the most common? Why?
-* Which values are rare? Why? Does that match your expectations?
-* Can you see any unusual patterns? What might explain them?
-* How are the observations within each cluster similar to each other?
-* How are the observations in separate clusters different from each other?
-* How can you explain or describe the clusters?
-* Why might the appearance of clusters be misleading?
 # There are six basic categories of questions^[Leek, "Types of Data Science Questions"]  
     1. Descriptive
         a. describe but not make decisions/interpret/infer

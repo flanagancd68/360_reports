@@ -1,0 +1,93 @@
+---
+title: "360 Video links"
+output: html_notebook
+---
+# Title: 
+3m 360 Workflow
+# Description
+This course will provide a video tutorial on effective use of the 3M 360 Encompass tool
+
+# Learning Objectives
+At the conclusion, participants should be able to:
+•Use the Coder View and Evidence Panes to review auto-suggested codes 
+•	Use advanced features in the 3M Encoder to generate a complete and compliant" code set 
+•	Take advantage of other functionality in the 3M system such as filtering and searching 
+
+# Course ID:
+RCD18211
+
+# Intro
+<iframe src="https://fast.wistia.net/embed/iframe/1m5v4e2522" title="Wistia video player" allowtransparency="true" frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed" allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen msallowfullscreen width="640" height="360"></iframe>
+6
+
+# Coder Workflow
+<iframe src="https://fast.wistia.net/embed/iframe/3dkgvul6lp" title="Wistia video player" allowtransparency="true" frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed" allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen msallowfullscreen width="640" height="360"></iframe>
+13
+
+# Coder View
+<iframe src="https://fast.wistia.net/embed/iframe/ekgak73xdq" title="Wistia video player" allowtransparency="true" frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed" allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen msallowfullscreen width="640" height="360"></iframe>
+10
+
+# Understanding Annotations
+<iframe src="https://fast.wistia.net/embed/iframe/pip2anr2ks" title="Wistia video player" allowtransparency="true" frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed" allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen msallowfullscreen width="640" height="360"></iframe>
+5
+
+# Auto Suggested Codes part 1
+<iframe src="https://fast.wistia.net/embed/iframe/9m8t5sl559" title="Wistia video player" allowtransparency="true" frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed" allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen msallowfullscreen width="640" height="360"></iframe>
+7
+
+# Auto suggested codes part 2
+<iframe src="https://fast.wistia.net/embed/iframe/psehj8dw8v" title="Wistia video player" allowtransparency="true" frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed" allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen msallowfullscreen width="640" height="360"></iframe>
+
+
+# Coding a previously rejected code
+<iframe src="https://fast.wistia.net/embed/iframe/gswkld5pcc" title="Wistia video player" allowtransparency="true" frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed" allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen msallowfullscreen width="640" height="360"></iframe>
+4
+
+# Using Codes Panes part 1
+<iframe src="https://fast.wistia.net/embed/iframe/4iaymknlbw" title="Wistia video player" allowtransparency="true" frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed" allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen msallowfullscreen width="640" height="360"></iframe>
+7
+
+# using codes panes part 2
+<iframe src="https://fast.wistia.net/embed/iframe/khup6wsu99" title="Wistia video player" allowtransparency="true" frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed" allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen msallowfullscreen width="640" height="360"></iframe>
+7
+
+# Accept/reject CDI Reviewer Codes
+<iframe src="https://fast.wistia.net/embed/iframe/hv8dnhe930" title="Wistia video player" allowtransparency="true" frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed" allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen msallowfullscreen width="640" height="360"></iframe>
+10
+
+# Checking Unresolved Clinical Edits
+<iframe src="https://fast.wistia.net/embed/iframe/q13uag6ur2" title="Wistia video player" allowtransparency="true" frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed" allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen msallowfullscreen width="640" height="360"></iframe>
+5
+
+
+Please click the link to view the video. 
+The video may take a minute to load; please be patient.
+
+# Optional video quick tips
+## Coding From documents
+https://sharepoint.etenet.com/sites/Compliance/Coding/video_tutorials/Forms/Video/videoplayerpage.aspx?ID=136&FolderCTID=0x0120D520A8080008A6E0CBC3E92A488DE995AADC6D0885&List=8f850f1c-8072-4681-8073-5da23cede4b5&RootFolder=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DCoding%20from%20documents%2FAdditional%20Content&RecSrc=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DCoding%20from%20documents
+5
+## Oct 18 improvements
+https://sharepoint.etenet.com/sites/Compliance/Coding/video_tutorials/Forms/Video/videoplayerpage.aspx?ID=142&FolderCTID=0x0120D520A8080008A6E0CBC3E92A488DE995AADC6D0885&List=8f850f1c-8072-4681-8073-5da23cede4b5&RootFolder=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DDocument%20Readability%20Improvements%2FAdditional%20Content&RecSrc=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DDocument%20Readability%20Improvements
+8
+
+## Nosology Messages
+https://sharepoint.etenet.com/sites/Compliance/Coding/video_tutorials/Forms/Video/videoplayerpage.aspx?ID=44&FolderCTID=0x0120D520A8080008A6E0CBC3E92A488DE995AADC6D0885&List=8f850f1c-8072-4681-8073-5da23cede4b5&RootFolder=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DNosology%20messages%20and%20Edits%2FAdditional%20Content&RecSrc=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DNosology%20messages%20and%20Edits
+3
+
+## Sort by Severity
+https://sharepoint.etenet.com/sites/Compliance/Coding/video_tutorials/Forms/Video/videoplayerpage.aspx?ID=97&FolderCTID=0x0120D520A8080008A6E0CBC3E92A488DE995AADC6D0885&List=8f850f1c-8072-4681-8073-5da23cede4b5&RootFolder=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DSort%20by%20Severity%2FAdditional%20Content&RecSrc=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DSort%20by%20Severity
+3
+
+## Toggle Annotations
+https://sharepoint.etenet.com/sites/Compliance/Coding/video_tutorials/Forms/Video/videoplayerpage.aspx?ID=104&FolderCTID=0x0120D520A8080008A6E0CBC3E92A488DE995AADC6D0885&List=8f850f1c-8072-4681-8073-5da23cede4b5&RootFolder=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DToggle%20Annotations%20On%5FOff%2FAdditional%20Content&RecSrc=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DToggle%20Annotations%20On%5FOff
+1
+
+## 3M 360 search
+https://sharepoint.etenet.com/sites/Compliance/Coding/video_tutorials/Forms/Video/videoplayerpage.aspx?ID=91&FolderCTID=0x0120D520A8080008A6E0CBC3E92A488DE995AADC6D0885&List=8f850f1c-8072-4681-8073-5da23cede4b5&RootFolder=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DUsing%20the%203M%20Search%20Feature%2FAdditional%20Content&RecSrc=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DUsing%20the%203M%20Search%20Feature
+3
+
+## Document Compare
+https://sharepoint.etenet.com/sites/Compliance/Coding/video_tutorials/Forms/Video/videoplayerpage.aspx?ID=127&FolderCTID=0x0120D520A8080008A6E0CBC3E92A488DE995AADC6D0885&List=8f850f1c-8072-4681-8073-5da23cede4b5&RootFolder=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DVisit%20Hist%5FDoc%20Compare%2FAdditional%20Content&RecSrc=%2Fsites%2FCompliance%2FCoding%2Fvideo%5Ftutorials%2FQuick%20Tip%2DVisit%20Hist%5FDoc%20Compare
+7
