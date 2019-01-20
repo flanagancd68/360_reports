@@ -150,7 +150,11 @@ TIP: before hitting the **Export To** button, select and copy the saved name of 
 
 
 # **CAC003** | auto-suggested codes precision and recall by code
-1. Purpose: Identify low percentage acceptance of certain codes.  Can be used to evaluate coder adoption or NLP engine performance opportunities
+1. Purposes: 
+    * Identify low percentage acceptance of certain codes.  Can be used to evaluate coder adoption or NLP engine performance opportunities
+    * Identify trends with coders assigning unspecified codes (depends xlsx file of unspecified codes)
+    * Identify trends with coders assigning chronic conditions (depends xlsx file of chronic ICD-10-CM codes)
+    * Identify trends with coders assigning CCs/MCCs
 1. Four files needed:
     1. YYYY.Q_h_CAC003_ip_cdr.xlsx  
     2. YYYY.Q_h_CAC003_ip_fac.xlsx   
@@ -161,7 +165,7 @@ TIP: before hitting the **Export To** button, select and copy the saved name of 
 		- Date Type: Discharge Date | From Date: First of Quarter -1 | Through Date: End of Quarter -1 
 		- Visit Type: -All- | **Patient Type:  I (then O)** | Code: 
 		- ICD Version: Billable | Type: IDx,IPx | Symptom/Historical: Exclude | Codeset Type: HIM | Coder: -All- 
-		- **Precision Threshold : .50 | Recall Threshold : .50** | Exclude Visits without AutoSuggested Codes: N
+		- Precision Threshold : none | Recall Threshold : none | Exclude Visits without AutoSuggested Codes: N
 		- Primary Payer: -All- | Financial Class: -All- | Facility: 
 		- **Group 1: Last Reviewer/Coder (then Facility)**  
 
